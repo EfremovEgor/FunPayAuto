@@ -101,6 +101,27 @@ class App(customtkinter.CTk):
     def status_button_on_click(self):
         try:
             dp.check_connection()
+        except fe.ConfigNotFoundError as ex:
+            showerror(
+                title="Error",
+                message=str(ex)
+                + "\n\nTry resetting or creating config file by pressing Create/Reset config button.",
+            )
+            return
+        except fe.CookiesFileNotFoundError as ex:
+            showerror(
+                title="Error",
+                message=str(ex)
+                + "\n\nTry pressing Login button and login into your FP account.",
+            )
+            return
+        except fe.AuthenticationError as ex:
+            showerror(
+                title="Error",
+                message=str(ex)
+                + "\n\nProbably cookies are old. Try pressing Login button and login into your FP account again.",
+            )
+            return
         except BaseException as ex:
             showerror(title="Error", message=str(ex))
             return
@@ -115,11 +136,13 @@ class App(customtkinter.CTk):
                 title="Warning",
                 message="Login window was closed manually, please wait until it is closed automatically.",
             )
+            return
         except selenium_exception.TimeoutException:
             showwarning(
                 title="Warning",
                 message="Login window was closed automatically, because of inactivity or some error.",
             )
+            return
         cw.save_cookies(cookies)
 
 
