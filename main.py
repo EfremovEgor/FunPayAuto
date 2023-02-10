@@ -17,6 +17,7 @@ customtkinter.set_default_color_theme("blue")
 class App(customtkinter.CTk):
     def __init__(self):
         super().__init__()
+        self.minimal_gold = 5.0
         self.title("FunPay")
         self.geometry("700x450")
         self.resizable(False, False)
@@ -94,8 +95,7 @@ class App(customtkinter.CTk):
             text_color=("gray10", "gray90"),
             height=40,
         )
-        self.min_value_entry.grid(row=4, column=0, sticky="ew", pady=(40, 0))
-
+        self.min_value_entry.grid(row=5, column=0, sticky="ew")
         self.submit_min_gold_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -110,8 +110,17 @@ class App(customtkinter.CTk):
             image=self.submit_min_gold_image,
             command=self.submit_min_gold_button_on_click,
         )
-        self.submit_min_gold_button.grid(row=5, column=0, sticky="ew")
-        # self.min_value_entry.getdouble()
+        self.submit_min_gold_button.grid(row=6, column=0, sticky="ew")
+        self.min_buyout_label = customtkinter.CTkLabel(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=15),
+            text=f"Current Value {self.minimal_gold}",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+        )
+        self.min_buyout_label.grid(row=4, column=0, sticky="ew")
 
     def submit_min_gold_button_on_click(self):
         try:
@@ -119,7 +128,8 @@ class App(customtkinter.CTk):
         except ValueError as ex:
             showerror(title="Error", message=str(ex))
             return
-        print(float(self.min_value_entry.get()))
+        self.minimal_gold = float(self.min_value_entry.get())
+        self.min_buyout_label.configure(text=f"Current Value {self.minimal_gold}")
 
     def config_button_on_click(self):
         config_dict = {
