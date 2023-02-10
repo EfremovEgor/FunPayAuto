@@ -9,15 +9,10 @@ from PIL import Image
 import selenium.common.exceptions as selenium_exception
 import json
 
-customtkinter.set_appearance_mode("Dark")  # Modes: "System" (standard), "Dark", "Light"
-customtkinter.set_default_color_theme(
-    "dark-blue"
-)  # Themes: "blue" (standard), "green", "dark-blue"
+
 DIRECTORIES = ["data", "downloads"]
-customtkinter.set_appearance_mode("System")  # Modes: system (default), light, dark
-customtkinter.set_default_color_theme(
-    "blue"
-)  # Themes: blue (default), dark-blue, green
+customtkinter.set_appearance_mode("System")
+customtkinter.set_default_color_theme("blue")
 
 
 class App(customtkinter.CTk):
