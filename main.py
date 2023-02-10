@@ -1,4 +1,3 @@
-import tkinter
 import customtkinter
 import os
 import data_parser as dp
@@ -33,9 +32,12 @@ class App(customtkinter.CTk):
         self.status_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "status.png"))
         )
+        self.submit_min_gold_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "submit_min_gold.png"))
+        )
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(4, weight=1)
+        self.navigation_frame.grid_rowconfigure(7, weight=1)
         self.login_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -83,6 +85,41 @@ class App(customtkinter.CTk):
             command=self.config_button_on_click,
         )
         self.config_button.grid(row=3, column=0, sticky="ew")
+        self.min_value_entry = customtkinter.CTkEntry(
+            self.navigation_frame,
+            placeholder_text="Enter minimal gold",
+            corner_radius=0,
+            font=customtkinter.CTkFont(size=15),
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            height=40,
+        )
+        self.min_value_entry.grid(row=4, column=0, sticky="ew", pady=(40, 0))
+
+        self.submit_min_gold_button = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=15),
+            border_spacing=10,
+            text="Submit",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.submit_min_gold_image,
+            command=self.submit_min_gold_button_on_click,
+        )
+        self.submit_min_gold_button.grid(row=5, column=0, sticky="ew")
+        # self.min_value_entry.getdouble()
+
+    def submit_min_gold_button_on_click(self):
+        try:
+            float(self.min_value_entry.get())
+        except ValueError as ex:
+            showerror(title="Error", message=str(ex))
+            return
+        print(float(self.min_value_entry.get()))
 
     def config_button_on_click(self):
         config_dict = {
