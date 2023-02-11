@@ -99,7 +99,6 @@ class App(customtkinter.CTk):
         self.submit_min_gold_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
-            height=40,
             font=customtkinter.CTkFont(size=15),
             border_spacing=10,
             text="Submit",
@@ -121,6 +120,18 @@ class App(customtkinter.CTk):
             text_color=("gray10", "gray90"),
         )
         self.min_buyout_label.grid(row=4, column=0, sticky="ew")
+        self.servers = dp.get_servers()
+        self.combobox_1 = customtkinter.CTkComboBox(
+            self.navigation_frame,
+            corner_radius=0,
+            font=customtkinter.CTkFont(size=15),
+            text_color=("gray10", "gray90"),
+            state="readonly",
+            values=self.servers,
+        )
+
+        self.combobox_1.set("Choose server")
+        self.combobox_1.grid(row=7, column=0)
 
     def submit_min_gold_button_on_click(self):
         try:
