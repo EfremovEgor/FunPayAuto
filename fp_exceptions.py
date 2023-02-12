@@ -1,5 +1,5 @@
 class SiteDoesNotResponseError(BaseException):
-    def __init__(self, status_code) -> None:
+    def __init__(self, status_code: None = "Invalid") -> None:
         self.status_code = status_code
 
     def __str__(self) -> str:

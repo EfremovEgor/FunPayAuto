@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 import selenium
 import json
+from tkinter.messagebox import showerror, showwarning, showinfo
 
 URL = "https://funpay.com/account/login"
 
@@ -21,7 +22,10 @@ def get_cookies(url: str = URL, load_from_cfg: bool = False) -> dict:
         )
     except selenium.common.exceptions.TimeoutException:
         driver.close()
-        raise selenium.common.exceptions.TimeoutException
+        ex = selenium.common.exceptions.TimeoutException
+        showerror(title="Error", message=str(ex))
+
+        raise ex
     cookies = {}
     for cookie in driver.get_cookies():
         cookies.update({cookie["name"]: cookie["value"]})
