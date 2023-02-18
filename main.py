@@ -22,8 +22,8 @@ class App(customtkinter.CTk):
         super().__init__()
         self.minimal_gold = 5.0
         self.title("FunPay")
-        self.geometry("1200x600")
-        self.resizable(False, False)
+        self.geometry("1600x900")
+        self.resizable(True, False)
         self.servers = list()
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -206,7 +206,7 @@ class App(customtkinter.CTk):
         self.chain_servers_frame = customtkinter.CTkFrame(
             self, corner_radius=0, fg_color="transparent"
         )
-        self.chain_servers_frame.grid_columnconfigure(8, weight=1)
+        self.chain_servers_frame.grid_columnconfigure(10, weight=1)
         self.chain_servers_frame.rowconfigure(n_rows + 1, weight=1)
         self.csf_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
@@ -219,7 +219,6 @@ class App(customtkinter.CTk):
         )
 
         self.csf_label.grid(row=0, column=1, sticky="ew")
-
         self.csf_rows = list()
         for row in range(n_rows):
             self.csf_rows.append(
@@ -296,36 +295,34 @@ class App(customtkinter.CTk):
         with open(os.path.join(os.getcwd(), "config.json"), "r") as json_file:
             config = json.load(json_file)
             path = config.get(
-                "servers_path", os.path.join(os.getcwd(), "data", "servers.csv")
+                "servers_path", os.path.join(os.getcwd(), "data", "servers.json")
             )
+
         if not os.path.exists(path):
             self.servers = list()
             for row in self.csf_rows:
                 row.csf_add_servers_combobox.set("None")
-
             return
-        with open(path, mode="r") as servers_file:
-            servers_file = csv.reader(servers_file, delimiter=",")
-            for row in servers_file:
-                self.servers = row if row else self.servers
+
+        with open(path, "r") as json_file:
+            self.servers = json.load(json_file)
+
+        servers = [list(val.keys())[0] for val in self.servers]
+
         for row in self.csf_rows:
-            row.csf_add_servers_combobox.configure(values=self.servers)
-            row.csf_add_servers_combobox.set(
-                self.servers[0] if self.servers else "None"
-            )
+            row.csf_add_servers_combobox.configure(values=servers)
+            row.csf_add_servers_combobox.set(servers[0] if servers else "None")
+            row.servers = self.servers
 
     def save_servers(self) -> None:
         dp.essentials_check(lambda x: x)
         with open(os.path.join(os.getcwd(), "config.json"), "r") as json_file:
             config = json.load(json_file)
             path = config.get(
-                "servers_path", os.path.join(os.getcwd(), "data", "servers.csv")
+                "servers_path", os.path.join(os.getcwd(), "data", "servers.json")
             )
-        with open(path, mode="w") as servers_file:
-            servers_file = csv.writer(
-                servers_file, delimiter=",", quotechar='"', quoting=csv.QUOTE_MINIMAL
-            )
-            servers_file.writerow(self.servers)
+        with open(path, "w") as file:
+            json.dump(self.servers, file, indent=4)
 
     def config_button_on_click(self) -> None:
         config_dict = {

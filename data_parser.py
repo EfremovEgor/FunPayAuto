@@ -79,7 +79,7 @@ def generate_random_useragent():
 
 
 @essentials_check
-def get_servers() -> list:
+def get_servers() -> list[dict]:
     session = requests.Session()
     session.headers = {"User-Agent": generate_random_useragent()}
     cwd = os.getcwd()
@@ -88,13 +88,12 @@ def get_servers() -> list:
     html = session.get(config.get("goods_page_url", "https://funpay.com/chips/2/")).text
     html_objects = BeautifulSoup(html, "html.parser")
     servers = [
-        server.text.strip()
+        {server.text.strip(): int(server["value"])}
         for server in html_objects.find(
             "select", class_="form-control showcase-filter-input"
         ).find_all("option")
         if server.text.strip().lower() != "сервер"
     ]
-
     return servers[:20]
 
 
