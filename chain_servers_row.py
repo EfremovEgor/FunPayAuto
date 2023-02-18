@@ -4,21 +4,6 @@ from PIL import Image
 
 
 class ChainServersRow:
-    def load_images(self):
-        image_path = os.path.join(os.getcwd(), "icons")
-        self.add_image = customtkinter.CTkImage(
-            light_image=Image.open(os.path.join(image_path, "add.png"))
-        )
-        self.csf_save_image = customtkinter.CTkImage(
-            light_image=Image.open(os.path.join(image_path, "csf_save.png"))
-        )
-        self.csf_submit_image = customtkinter.CTkImage(
-            light_image=Image.open(os.path.join(image_path, "csf_submit.png"))
-        )
-        self.csf_load_image = customtkinter.CTkImage(
-            light_image=Image.open(os.path.join(image_path, "csf_load.png"))
-        )
-
     def __init__(
         self, chain_servers_frame: customtkinter.CTkFrame, servers: list, row: int = 1
     ) -> None:
@@ -48,6 +33,7 @@ class ChainServersRow:
             values=servers,
             border_width=1,
         )
+
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
 
         self.csf_add_button = customtkinter.CTkButton(
@@ -62,7 +48,7 @@ class ChainServersRow:
             hover_color=("gray70", "gray30"),
             anchor="w",
             image=self.add_image,
-            command=None,
+            command=self.add_button_on_click,
         )
         self.csf_add_button.grid(row=self.row, column=2, sticky="ew", padx=5)
 
@@ -104,7 +90,7 @@ class ChainServersRow:
             hover_color=("gray70", "gray30"),
             anchor="w",
             image=self.csf_submit_image,
-            command=None,
+            command=self.submit_button_on_click,
         )
         self.csf_submit_button.grid(row=self.row, column=5, sticky="ew", padx=5)
 
@@ -120,7 +106,7 @@ class ChainServersRow:
             hover_color=("gray70", "gray30"),
             anchor="w",
             image=self.csf_save_image,
-            command=None,
+            command=self.save_button_on_click,
         )
         self.csf_save_button.grid(row=self.row, column=6, sticky="ew", padx=5)
 
@@ -136,6 +122,42 @@ class ChainServersRow:
             hover_color=("gray70", "gray30"),
             anchor="w",
             image=self.csf_save_image,
-            command=None,
+            command=self.load_button_on_click,
         )
         self.csf_load_button.grid(row=self.row, column=7, sticky="ew", padx=5)
+
+        self.added_servers = dict()
+
+    def add_button_on_click(self) -> None:
+        label_text = self.csf_add_servers_label.cget("text").strip()
+        added_server = self.csf_add_servers_combobox.get().strip()
+        if added_server in label_text.split():
+            added_server = ""
+
+        self.csf_add_servers_label.configure(
+            text=f"{label_text if label_text!='None' else '' } {added_server}"
+        )
+
+    def submit_button_on_click(self) -> None:
+        ...
+
+    def save_button_on_click(self) -> None:
+        ...
+
+    def load_button_on_click(self) -> None:
+        ...
+
+    def load_images(self):
+        image_path = os.path.join(os.getcwd(), "icons")
+        self.add_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "add.png"))
+        )
+        self.csf_save_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_save.png"))
+        )
+        self.csf_submit_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_submit.png"))
+        )
+        self.csf_load_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_load.png"))
+        )

@@ -299,7 +299,10 @@ class App(customtkinter.CTk):
                 "servers_path", os.path.join(os.getcwd(), "data", "servers.csv")
             )
         if not os.path.exists(path):
-            self.servers = []
+            self.servers = list()
+            for row in self.csf_rows:
+                row.csf_add_servers_combobox.set("None")
+
             return
         with open(path, mode="r") as servers_file:
             servers_file = csv.reader(servers_file, delimiter=",")
@@ -307,6 +310,9 @@ class App(customtkinter.CTk):
                 self.servers = row if row else self.servers
         for row in self.csf_rows:
             row.csf_add_servers_combobox.configure(values=self.servers)
+            row.csf_add_servers_combobox.set(
+                self.servers[0] if self.servers else "None"
+            )
 
     def save_servers(self) -> None:
         dp.essentials_check(lambda x: x)
