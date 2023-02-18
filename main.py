@@ -18,7 +18,23 @@ customtkinter.set_default_color_theme("blue")
 
 
 class App(customtkinter.CTk):
-    def load_images(self):
+    def __init__(self):
+        super().__init__()
+        self.minimal_gold = 5.0
+        self.title("FunPay")
+        self.geometry("1200x600")
+        self.resizable(False, False)
+        self.servers = list()
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.load_images()
+        self.prepare_navigation_frame()
+        self.prepare_chain_servers_frame()
+        self.load_servers()
+        self.prepare_mass_damping()
+        self.select_frame_by_name("chain_servers")
+
+    def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")
         self.home_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "login.png"))
@@ -32,8 +48,8 @@ class App(customtkinter.CTk):
         self.submit_min_gold_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "submit_min_gold.png"))
         )
-        self.reload_servers_image = customtkinter.CTkImage(
-            light_image=Image.open(os.path.join(image_path, "reload_servers.png"))
+        self.chain_servers_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "chain_servers.png"))
         )
         self.add_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "add.png"))
@@ -47,12 +63,17 @@ class App(customtkinter.CTk):
         self.csf_load_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "csf_load.png"))
         )
+        self.mass_damping_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "mass_damping.png"))
+        )
+        self.reload_servers_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "reload.png"))
+        )
 
-    def prepare_navigation_frame(self):
+    def prepare_navigation_frame(self) -> None:
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
-        self.navigation_frame.grid_rowconfigure(9, weight=1)
-        # Essentials section
+        self.navigation_frame.grid_rowconfigure(10, weight=1)
         self.login_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -100,7 +121,6 @@ class App(customtkinter.CTk):
             command=self.config_button_on_click,
         )
         self.config_button.grid(row=3, column=0, sticky="ew")
-        # Gold values section
         self.min_value_entry = customtkinter.CTkEntry(
             self.navigation_frame,
             placeholder_text="Enter minimal gold",
@@ -146,7 +166,7 @@ class App(customtkinter.CTk):
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             anchor="w",
-            image=self.status_image,
+            image=self.chain_servers_image,
             command=self.csf_select_button_on_click,
         )
         self.csf_select_button.grid(row=7, column=0, sticky="ew")
@@ -161,12 +181,27 @@ class App(customtkinter.CTk):
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             anchor="w",
-            image=self.status_image,
+            image=self.mass_damping_image,
             command=self.md_select_button_on_click,
         )
         self.md_select_button.grid(row=8, column=0, sticky="ew")
+        self.reupload_servers = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=15),
+            border_spacing=10,
+            text="Reload Servers",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.reload_servers_image,
+            command=self.reupload_servers,
+        )
+        self.reupload_servers.grid(row=9, column=0, sticky="ew")
 
-    def prepare_chain_servers_frame(self):
+    def prepare_chain_servers_frame(self) -> None:
         n_rows = 10
         self.chain_servers_frame = customtkinter.CTkFrame(
             self, corner_radius=0, fg_color="transparent"
@@ -189,11 +224,13 @@ class App(customtkinter.CTk):
         for row in range(n_rows):
             self.csf_rows.append(
                 ChainServersRow(
-                    chain_servers_frame=self.chain_servers_frame, row=row + 1
+                    chain_servers_frame=self.chain_servers_frame,
+                    servers=self.servers,
+                    row=row + 1,
                 )
             )
 
-    def prepare_mass_damping(self):
+    def prepare_mass_damping(self) -> None:
         self.mass_damping_frame = customtkinter.CTkFrame(
             self, corner_radius=0, fg_color="transparent"
         )
@@ -211,57 +248,13 @@ class App(customtkinter.CTk):
 
         self.md_label.grid(row=0, column=1, sticky="ew")
 
-    def __init__(self):
-        super().__init__()
-        self.minimal_gold = 5.0
-        self.title("FunPay")
-        self.geometry("1200x600")
-        self.resizable(False, False)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
-        self.load_images()
-        self.prepare_navigation_frame()
-        self.prepare_chain_servers_frame()
-        # Servers section
-        # self.servers = list()
-        # self.servers_combobox = customtkinter.CTkComboBox(
-        #     self.navigation_frame,
-        #     corner_radius=0,
-        #     font=customtkinter.CTkFont(size=15),
-        #     text_color=("gray10", "gray90"),
-        #     state="readonly",
-        #     values=self.servers,
-        # )
-        # self.servers_combobox.set("Choose server")
-        # self.servers_combobox.grid(row=8, column=0)
-        # self.load_servers()
-        # self.reupload_servers = customtkinter.CTkButton(
-        #     self.navigation_frame,
-        #     corner_radius=0,
-        #     height=40,
-        #     font=customtkinter.CTkFont(size=15),
-        #     border_spacing=10,
-        #     text="Reload Servers",
-        #     fg_color="transparent",
-        #     text_color=("gray10", "gray90"),
-        #     hover_color=("gray70", "gray30"),
-        #     anchor="w",
-        #     image=self.reload_servers_image,
-        #     command=self.reupload_servers,
-        # )
-        # self.reupload_servers.grid(row=7, column=0, sticky="ew", pady=(10, 0))
-        self.prepare_mass_damping()
-        self.select_frame_by_name("mass_damping")
-
-    def csf_select_button_on_click(self):
+    def csf_select_button_on_click(self) -> None:
         self.select_frame_by_name("chain_servers")
 
-    def md_select_button_on_click(self):
+    def md_select_button_on_click(self) -> None:
         self.select_frame_by_name("mass_damping")
 
-    def select_frame_by_name(self, name):
-
-        # show selected frame
+    def select_frame_by_name(self, name: str) -> None:
         if name == "chain_servers":
             self.chain_servers_frame.grid(row=0, column=1, sticky="nsew")
         else:
@@ -275,7 +268,7 @@ class App(customtkinter.CTk):
         # else:
         #     self.third_frame.grid_forget()
 
-    def reupload_servers(self):
+    def reupload_servers(self) -> None:
         try:
             self.servers = dp.get_servers()
         except BaseException as ex:
@@ -306,14 +299,16 @@ class App(customtkinter.CTk):
                 "servers_path", os.path.join(os.getcwd(), "data", "servers.csv")
             )
         if not os.path.exists(path):
+            self.servers = []
             return
         with open(path, mode="r") as servers_file:
             servers_file = csv.reader(servers_file, delimiter=",")
             for row in servers_file:
                 self.servers = row if row else self.servers
-            self.servers_combobox.configure(values=self.servers)
+        for row in self.csf_rows:
+            row.csf_add_servers_combobox.configure(values=self.servers)
 
-    def save_servers(self):
+    def save_servers(self) -> None:
         dp.essentials_check(lambda x: x)
         with open(os.path.join(os.getcwd(), "config.json"), "r") as json_file:
             config = json.load(json_file)

@@ -19,7 +19,9 @@ class ChainServersRow:
             light_image=Image.open(os.path.join(image_path, "csf_load.png"))
         )
 
-    def __init__(self, chain_servers_frame, row=1) -> None:
+    def __init__(
+        self, chain_servers_frame: customtkinter.CTkFrame, servers: list, row: int = 1
+    ) -> None:
         self.load_images()
         self.row = row
         self.chain_servers_frame = chain_servers_frame
@@ -43,7 +45,7 @@ class ChainServersRow:
             font=customtkinter.CTkFont(size=15),
             text_color=("gray10", "gray90"),
             state="readonly",
-            values=["New", "New2"],
+            values=servers,
             border_width=1,
         )
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
@@ -63,6 +65,7 @@ class ChainServersRow:
             command=None,
         )
         self.csf_add_button.grid(row=self.row, column=2, sticky="ew", padx=5)
+
         self.csf_gold_amount_entry = customtkinter.CTkEntry(
             self.chain_servers_frame,
             placeholder_text="Enter Gold Amount",
@@ -85,10 +88,10 @@ class ChainServersRow:
             height=28,
             border_width=1,
         )
-
         self.csf_gold_price_entry.grid(
             row=self.row, column=4, sticky="ew", padx=5, pady=5
         )
+
         self.csf_submit_button = customtkinter.CTkButton(
             self.chain_servers_frame,
             corner_radius=0,
@@ -104,6 +107,7 @@ class ChainServersRow:
             command=None,
         )
         self.csf_submit_button.grid(row=self.row, column=5, sticky="ew", padx=5)
+
         self.csf_save_button = customtkinter.CTkButton(
             self.chain_servers_frame,
             corner_radius=0,
@@ -119,6 +123,7 @@ class ChainServersRow:
             command=None,
         )
         self.csf_save_button.grid(row=self.row, column=6, sticky="ew", padx=5)
+
         self.csf_load_button = customtkinter.CTkButton(
             self.chain_servers_frame,
             corner_radius=0,
