@@ -26,3 +26,4 @@ test.py
 /data
 config.json
 logs/
+saves/

@@ -3,6 +3,8 @@ import os
 from PIL import Image
 from tkinter.messagebox import showerror
 import copy
+import json
+from customtkinter import filedialog
 
 
 class ChainServersRow:
@@ -160,8 +162,13 @@ class ChainServersRow:
         )
         self.csf_clear_button.grid(row=self.row, column=9, sticky="ew", padx=5)
 
+    def update_added_servers_label(self) -> None:
+        text = " | ".join(
+            f"{list(server.keys())[0]}({server['side']})" for server in self.selected
+        )
+        self.csf_add_servers_label.configure(text=text)
+
     def add_button_on_click(self) -> None:
-        label_text = self.csf_add_servers_label.cget("text").strip()
         added_server = self.csf_add_servers_combobox.get().strip()
         servers = copy.deepcopy(self.servers)
         for server in servers:
@@ -175,34 +182,60 @@ class ChainServersRow:
                     showerror(title="Error", message="Server already selected")
                     return
                 self.selected.append(server)
+        self.update_added_servers_label()
 
-        text = " | ".join(
-            f"{list(server.keys())[0]}({server['side']})" for server in self.selected
-        )
-        self.csf_add_servers_label.configure(text=text)
-        # print(self.selected)
-
-    def submit_button_on_click(self) -> None:
+    def prepare_data(self) -> list:
         try:
             self.gold_amount = int(self.csf_gold_amount_entry.get())
         except ValueError as ex:
             showerror(title="Error", message="Wrong gold amount")
-            return
+            return None
         try:
             self.gold_price = float(self.csf_gold_price_entry.get())
         except ValueError as ex:
             showerror(title="Error", message="Wrong gold price")
-            return
+            return None
         if not self.selected:
             showerror(title="Error", message="No servers selected")
-            return
-        print(self.gold_amount, self.gold_price, self.selected)
+            return None
+        return [self.gold_amount, self.gold_price, self.selected]
+
+    def submit_button_on_click(self) -> None:
+
+        print(self.prepare_data())
 
     def save_button_on_click(self) -> None:
-        ...
+        data = self.prepare_data()
+        if not data:
+            return
+        try:
+            with filedialog.asksaveasfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                initialfile="Untitled.json",
+                defaultextension=".json",
+                filetypes=[("Json Documents", "*.json")],
+            ) as file:
+                json.dump(
+                    {"amount": data[0], "price": data[0], "servers": data[2]},
+                    file,
+                    indent=4,
+                )
+        except AttributeError:
+            return
 
     def load_button_on_click(self) -> None:
-        ...
+        with filedialog.askopenfile(
+            initialdir=os.path.join(os.getcwd(), "saves"),
+            filetypes=[("Json Documents", "*.json")],
+            defaultextension=".json",
+        ) as json_file:
+            data = json.load(json_file)
+        self.selected = data["servers"]
+        self.update_added_servers_label()
+        self.csf_gold_amount_entry.delete(0)
+        self.csf_gold_price_entry.delete(0)
+        self.csf_gold_amount_entry.insert(0, str(data["amount"]))
+        self.csf_gold_price_entry.insert(0, str(data["price"]))
 
     def clear_button_on_click(self) -> None:
         self.load_images()

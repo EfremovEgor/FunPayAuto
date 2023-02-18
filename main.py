@@ -12,7 +12,7 @@ import time
 import csv
 
 
-DIRECTORIES = ["data", "downloads", "logs"]
+DIRECTORIES = ["data", "downloads", "logs","saves"]
 customtkinter.set_appearance_mode("System")
 customtkinter.set_default_color_theme("blue")
 
