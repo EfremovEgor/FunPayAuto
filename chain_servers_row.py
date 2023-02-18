@@ -224,12 +224,15 @@ class ChainServersRow:
             return
 
     def load_button_on_click(self) -> None:
-        with filedialog.askopenfile(
-            initialdir=os.path.join(os.getcwd(), "saves"),
-            filetypes=[("Json Documents", "*.json")],
-            defaultextension=".json",
-        ) as json_file:
-            data = json.load(json_file)
+        try:
+            with filedialog.askopenfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                filetypes=[("Json Documents", "*.json")],
+                defaultextension=".json",
+            ) as json_file:
+                data = json.load(json_file)
+        except AttributeError as ex:
+            return
         self.selected = data["servers"]
         self.update_added_servers_label()
         self.csf_gold_amount_entry.delete(0)

@@ -1,0 +1,1 @@
+pyinstaller --noconfirm --onedir --windowed main.py --add-data "d:/fl pt/funpayautoproj/.venv/lib/site-packages/customtkinter;customtkinter/"

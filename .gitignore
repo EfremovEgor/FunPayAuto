@@ -27,3 +27,4 @@ test.py
 config.json
 logs/
 saves/
+*.spec
