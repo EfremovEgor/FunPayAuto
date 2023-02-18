@@ -1,7 +1,7 @@
 import customtkinter
 import os
 import data_parser as dp
-import fp_exceptions as fe
+from chain_servers_row import ChainServersRow
 import cookies_worker as cw
 from tkinter.messagebox import showerror, showwarning, showinfo
 from PIL import Image
@@ -18,14 +18,7 @@ customtkinter.set_default_color_theme("blue")
 
 
 class App(customtkinter.CTk):
-    def __init__(self):
-        super().__init__()
-        self.minimal_gold = 5.0
-        self.title("FunPay")
-        self.geometry("700x450")
-        self.resizable(False, False)
-        self.grid_rowconfigure(0, weight=1)
-        self.grid_columnconfigure(1, weight=1)
+    def load_images(self):
         image_path = os.path.join(os.getcwd(), "icons")
         self.home_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "login.png"))
@@ -42,9 +35,24 @@ class App(customtkinter.CTk):
         self.reload_servers_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "reload_servers.png"))
         )
+        self.add_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "add.png"))
+        )
+        self.csf_save_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_save.png"))
+        )
+        self.csf_submit_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_submit.png"))
+        )
+        self.csf_load_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_load.png"))
+        )
+
+    def prepare_navigation_frame(self):
         self.navigation_frame = customtkinter.CTkFrame(self, corner_radius=0)
         self.navigation_frame.grid(row=0, column=0, sticky="nsew")
         self.navigation_frame.grid_rowconfigure(9, weight=1)
+        # Essentials section
         self.login_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -92,6 +100,7 @@ class App(customtkinter.CTk):
             command=self.config_button_on_click,
         )
         self.config_button.grid(row=3, column=0, sticky="ew")
+        # Gold values section
         self.min_value_entry = customtkinter.CTkEntry(
             self.navigation_frame,
             placeholder_text="Enter minimal gold",
@@ -126,36 +135,145 @@ class App(customtkinter.CTk):
             text_color=("gray10", "gray90"),
         )
         self.min_buyout_label.grid(row=4, column=0, sticky="ew")
-        self.servers = list()
-        self.servers_combobox = customtkinter.CTkComboBox(
-            self.navigation_frame,
-            corner_radius=0,
-            font=customtkinter.CTkFont(size=15),
-            text_color=("gray10", "gray90"),
-            state="readonly",
-            values=self.servers,
-        )
-
-        self.servers_combobox.set("Choose server")
-        self.servers_combobox.grid(row=8, column=0)
-        self.load_servers()
-
-        self.reupload_servers = customtkinter.CTkButton(
+        self.csf_select_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
             height=40,
             font=customtkinter.CTkFont(size=15),
             border_spacing=10,
-            text="Reload Servers",
+            text="Chain Servers",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             anchor="w",
-            image=self.reload_servers_image,
-            command=self.reupload_servers,
+            image=self.status_image,
+            command=self.csf_select_button_on_click,
+        )
+        self.csf_select_button.grid(row=7, column=0, sticky="ew")
+        self.md_select_button = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=15),
+            border_spacing=10,
+            text="Mass Damping",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.status_image,
+            command=self.md_select_button_on_click,
+        )
+        self.md_select_button.grid(row=8, column=0, sticky="ew")
+
+    def prepare_chain_servers_frame(self):
+        n_rows = 10
+        self.chain_servers_frame = customtkinter.CTkFrame(
+            self, corner_radius=0, fg_color="transparent"
+        )
+        self.chain_servers_frame.grid_columnconfigure(8, weight=1)
+        self.chain_servers_frame.rowconfigure(n_rows + 1, weight=1)
+        self.csf_label = customtkinter.CTkLabel(
+            self.chain_servers_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=30),
+            text=f"Chain Servers",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
         )
 
-        self.reupload_servers.grid(row=7, column=0, sticky="ew", pady=(10, 0))
+        self.csf_label.grid(row=0, column=1, sticky="ew")
+
+        self.csf_rows = list()
+        for row in range(n_rows):
+            self.csf_rows.append(
+                ChainServersRow(
+                    chain_servers_frame=self.chain_servers_frame, row=row + 1
+                )
+            )
+
+    def prepare_mass_damping(self):
+        self.mass_damping_frame = customtkinter.CTkFrame(
+            self, corner_radius=0, fg_color="transparent"
+        )
+        self.mass_damping_frame.grid_columnconfigure(8, weight=1)
+        self.mass_damping_frame.rowconfigure(10, weight=1)
+        self.md_label = customtkinter.CTkLabel(
+            self.mass_damping_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=30),
+            text=f"Mass damping",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+        )
+
+        self.md_label.grid(row=0, column=1, sticky="ew")
+
+    def __init__(self):
+        super().__init__()
+        self.minimal_gold = 5.0
+        self.title("FunPay")
+        self.geometry("1200x600")
+        self.resizable(False, False)
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=1)
+        self.load_images()
+        self.prepare_navigation_frame()
+        self.prepare_chain_servers_frame()
+        # Servers section
+        # self.servers = list()
+        # self.servers_combobox = customtkinter.CTkComboBox(
+        #     self.navigation_frame,
+        #     corner_radius=0,
+        #     font=customtkinter.CTkFont(size=15),
+        #     text_color=("gray10", "gray90"),
+        #     state="readonly",
+        #     values=self.servers,
+        # )
+        # self.servers_combobox.set("Choose server")
+        # self.servers_combobox.grid(row=8, column=0)
+        # self.load_servers()
+        # self.reupload_servers = customtkinter.CTkButton(
+        #     self.navigation_frame,
+        #     corner_radius=0,
+        #     height=40,
+        #     font=customtkinter.CTkFont(size=15),
+        #     border_spacing=10,
+        #     text="Reload Servers",
+        #     fg_color="transparent",
+        #     text_color=("gray10", "gray90"),
+        #     hover_color=("gray70", "gray30"),
+        #     anchor="w",
+        #     image=self.reload_servers_image,
+        #     command=self.reupload_servers,
+        # )
+        # self.reupload_servers.grid(row=7, column=0, sticky="ew", pady=(10, 0))
+        self.prepare_mass_damping()
+        self.select_frame_by_name("mass_damping")
+
+    def csf_select_button_on_click(self):
+        self.select_frame_by_name("chain_servers")
+
+    def md_select_button_on_click(self):
+        self.select_frame_by_name("mass_damping")
+
+    def select_frame_by_name(self, name):
+
+        # show selected frame
+        if name == "chain_servers":
+            self.chain_servers_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.chain_servers_frame.grid_forget()
+        if name == "mass_damping":
+            self.mass_damping_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.mass_damping_frame.grid_forget()
+        # if name == "frame_3":
+        #     self.third_frame.grid(row=0, column=1, sticky="nsew")
+        # else:
+        #     self.third_frame.grid_forget()
 
     def reupload_servers(self):
         try:
