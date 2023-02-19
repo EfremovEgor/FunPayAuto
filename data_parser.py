@@ -74,7 +74,7 @@ def essentials_check(func):
     return wrapper
 
 
-def generate_random_useragent():
+def generate_random_useragent() -> str:
     return UserAgent().random
 
 
@@ -95,6 +95,28 @@ def get_servers() -> list[dict]:
         if server.text.strip().lower() != "сервер"
     ]
     return servers[:20]
+
+
+@essentials_check
+def get_gold_amount() -> dict:
+    session = requests.Session()
+    session.headers = {"User-Agent": generate_random_useragent()}
+    session.cookies.update(cookies_worker.read_cookies())
+    cwd = os.getcwd()
+    with open(os.path.join(cwd, "config.json"), "r") as json_file:
+        config = json.load(json_file)
+    html = session.get(
+        config.get("trades_page_url", "https://funpay.com/chips/2/trade")
+    ).text
+    html_objects = BeautifulSoup(html, "html.parser")
+    gold_amounts = dict()
+    n_servers = 43
+    entries = html_objects.find_all("input", attrs={"class": "form-control amount"})[
+        :n_servers
+    ]
+    for entry in entries:
+        gold_amounts[entry["name"].strip()] = entry["value"].strip()
+    return gold_amounts
 
 
 @essentials_check

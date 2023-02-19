@@ -216,7 +216,7 @@ class ChainServersRow:
                 filetypes=[("Json Documents", "*.json")],
             ) as file:
                 json.dump(
-                    {"amount": data[0], "price": data[0], "servers": data[2]},
+                    {"amount": data[0], "price": data[1], "servers": data[2]},
                     file,
                     indent=4,
                 )
@@ -235,8 +235,8 @@ class ChainServersRow:
             return
         self.selected = data["servers"]
         self.update_added_servers_label()
-        self.csf_gold_amount_entry.delete(0)
-        self.csf_gold_price_entry.delete(0)
+        self.csf_gold_amount_entry.delete(0, len(self.csf_gold_amount_entry.get()))
+        self.csf_gold_price_entry.delete(0, len(self.csf_gold_price_entry.get()))
         self.csf_gold_amount_entry.insert(0, str(data["amount"]))
         self.csf_gold_price_entry.insert(0, str(data["price"]))
 

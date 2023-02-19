@@ -7,7 +7,7 @@ import selenium
 import json
 from tkinter.messagebox import showerror, showwarning, showinfo
 
-URL = "https://funpay.com/account/login"
+URL = "https://funpay.com/chips/2/trade"
 
 
 def get_cookies(url: str = URL, load_from_cfg: bool = False) -> dict:

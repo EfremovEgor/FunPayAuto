@@ -10,7 +10,7 @@ import json
 import logging
 import time
 import csv
-
+from mass_damping import MassDamping
 
 DIRECTORIES = ["data", "downloads", "logs", "saves"]
 customtkinter.set_appearance_mode("System")
@@ -30,8 +30,8 @@ class App(customtkinter.CTk):
         self.load_images()
         self.prepare_navigation_frame()
         self.prepare_chain_servers_frame()
-        self.load_servers()
         self.prepare_mass_damping()
+        self.load_servers()
         self.select_frame_by_name("chain_servers")
 
     def load_images(self) -> None:
@@ -121,40 +121,6 @@ class App(customtkinter.CTk):
             command=self.config_button_on_click,
         )
         self.config_button.grid(row=3, column=0, sticky="ew")
-        self.min_value_entry = customtkinter.CTkEntry(
-            self.navigation_frame,
-            placeholder_text="Enter minimal gold",
-            corner_radius=0,
-            font=customtkinter.CTkFont(size=15),
-            fg_color="transparent",
-            text_color=("gray10", "gray90"),
-            height=40,
-        )
-        self.min_value_entry.grid(row=5, column=0, sticky="ew")
-        self.submit_min_gold_button = customtkinter.CTkButton(
-            self.navigation_frame,
-            corner_radius=0,
-            font=customtkinter.CTkFont(size=15),
-            border_spacing=10,
-            text="Submit",
-            fg_color="transparent",
-            text_color=("gray10", "gray90"),
-            hover_color=("gray70", "gray30"),
-            anchor="w",
-            image=self.submit_min_gold_image,
-            command=self.submit_min_gold_button_on_click,
-        )
-        self.submit_min_gold_button.grid(row=6, column=0, sticky="ew")
-        self.min_buyout_label = customtkinter.CTkLabel(
-            self.navigation_frame,
-            corner_radius=0,
-            height=40,
-            font=customtkinter.CTkFont(size=15),
-            text=f"Current Value {self.minimal_gold}",
-            fg_color="transparent",
-            text_color=("gray10", "gray90"),
-        )
-        self.min_buyout_label.grid(row=4, column=0, sticky="ew")
         self.csf_select_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -169,7 +135,7 @@ class App(customtkinter.CTk):
             image=self.chain_servers_image,
             command=self.csf_select_button_on_click,
         )
-        self.csf_select_button.grid(row=7, column=0, sticky="ew")
+        self.csf_select_button.grid(row=4, column=0, sticky="ew", pady=(20, 0))
         self.md_select_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -184,7 +150,7 @@ class App(customtkinter.CTk):
             image=self.mass_damping_image,
             command=self.md_select_button_on_click,
         )
-        self.md_select_button.grid(row=8, column=0, sticky="ew")
+        self.md_select_button.grid(row=5, column=0, sticky="ew")
         self.reupload_servers = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -199,7 +165,7 @@ class App(customtkinter.CTk):
             image=self.reload_servers_image,
             command=self.reupload_servers,
         )
-        self.reupload_servers.grid(row=9, column=0, sticky="ew")
+        self.reupload_servers.grid(row=6, column=0, sticky="ew")
 
     def prepare_chain_servers_frame(self) -> None:
         n_rows = 10
@@ -246,6 +212,9 @@ class App(customtkinter.CTk):
         )
 
         self.md_label.grid(row=0, column=1, sticky="ew")
+        self.damping_objects = MassDamping(
+            self.mass_damping_frame, servers=self.servers
+        )
 
     def csf_select_button_on_click(self) -> None:
         self.select_frame_by_name("chain_servers")
@@ -308,7 +277,7 @@ class App(customtkinter.CTk):
             self.servers = json.load(json_file)
 
         servers = [list(val.keys())[0] for val in self.servers]
-
+        self.damping_objects.servers = self.servers
         for row in self.csf_rows:
             row.csf_add_servers_combobox.configure(values=servers)
             row.csf_add_servers_combobox.set(servers[0] if servers else "None")
@@ -329,7 +298,8 @@ class App(customtkinter.CTk):
             "base_site_url": "https://funpay.com/",
             "goods_page_url": "https://funpay.com/chips/2/",
             "cookies_path": "data\\cookies.json",
-            "servers_path": "data\\servers.csv",
+            "servers_path": "data\\servers.json",
+            "trades_page_url": "https://funpay.com/chips/2/trade",
         }
         with open(os.path.join(os.getcwd(), "config.json"), "w") as file:
             json.dump(config_dict, file, indent=4)
