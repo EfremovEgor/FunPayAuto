@@ -1,8 +1,8 @@
-csrf_token: 6owbjujgeg47vqso
+csrf_token: 45123o
 game: 2
 chip: 2
-options[chip_min_sum]: 100
-offers[375][29][amount]: 10000
+options[chip_min_sum]: 1500
+offers[375][29][amount]: 199
 offers[375][29][price]: 1300
 offers[375][1][amount]: 321
 offers[375][1][price]: 323
