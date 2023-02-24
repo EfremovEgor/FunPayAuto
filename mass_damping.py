@@ -2,11 +2,8 @@ import customtkinter
 import os
 from PIL import Image
 from tkinter.messagebox import showerror
-import copy
-import json
-from customtkinter import filedialog
-import copy
-import data_parser as dp
+import requests_worker
+import price_calc
 
 
 class MassDamping:
@@ -44,6 +41,19 @@ class MassDamping:
             border_width=1,
         )
         self.md_all_servers_certain_price_entry.grid(
+            row=1, column=2, sticky="ew", padx=5
+        )
+        self.md_all_servers_certain_amount_entry = customtkinter.CTkEntry(
+            self.mass_damping_frame,
+            placeholder_text="Enter Gold Amount",
+            corner_radius=0,
+            font=customtkinter.CTkFont(size=15),
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            height=28,
+            border_width=1,
+        )
+        self.md_all_servers_certain_amount_entry.grid(
             row=1, column=1, sticky="ew", padx=5
         )
         self.md_all_servers_certain_price_button = customtkinter.CTkButton(
@@ -65,29 +75,21 @@ class MassDamping:
         )
 
     def md_all_servers_certain_price_button_on_click(self) -> None:
-        servers: dict = copy.deepcopy(self.servers)
-        payload = list()
         try:
             price = float(self.md_all_servers_certain_price_entry.get())
         except ValueError:
             showerror(title="Error", message="Wrong gold price")
             return
-        gold_amount = dp.get_gold_amount()
-        for server_id in [list(server.values())[0] for server in servers]:
-            payload.append({f"offers[{server_id}][1][price]": f"{price}"})
-            payload.append(
-                {
-                    f"offers[{server_id}][1][amount]": gold_amount[
-                        f"offers[{server_id}][1][amount]"
-                    ]
-                }
-            )
-            payload.append({f"offers[{server_id}][2][price]": f"{price}"})
-            payload.append(
-                {
-                    f"offers[{server_id}][2][amount]": gold_amount[
-                        f"offers[{server_id}][2][amount]"
-                    ]
-                }
-            )
+        try:
+            amount = int(self.md_all_servers_certain_amount_entry.get())
+        except ValueError:
+            showerror(title="Error", message="Wrong gold amount")
+            return
+        payload = requests_worker.form_payload()
+        for key in list(payload.keys()):
+            if "amount" in key:
+                payload[key] = str(amount)
+            if "price" in key:
+                payload[key] = str(price_calc.get_initial_price(price))
         print(payload)
+        requests_worker.send_request(payload)

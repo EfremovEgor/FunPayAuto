@@ -11,6 +11,7 @@ import logging
 import time
 import csv
 from mass_damping import MassDamping
+import requests
 
 DIRECTORIES = ["data", "downloads", "logs", "saves"]
 customtkinter.set_appearance_mode("System")
@@ -339,8 +340,17 @@ def create_directories() -> None:
             os.mkdir(os.path.join(os.getcwd(), dir))
 
 
+def download_request_template() -> None:
+    path = os.path.join(os.getcwd(), "data", "request_template.json")
+    if not os.path.exists(path):
+        response = requests.get("https://pastebin.com/raw/UmY7QdS1")
+        with open(path, "wb") as f:
+            f.write(response.content)
+
+
 if __name__ == "__main__":
     create_directories()
+    download_request_template()
     logging.basicConfig(
         filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
         filemode="w",

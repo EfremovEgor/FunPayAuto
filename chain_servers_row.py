@@ -5,6 +5,8 @@ from tkinter.messagebox import showerror
 import copy
 import json
 from customtkinter import filedialog
+import requests_worker
+import price_calc
 
 
 class ChainServersRow:
@@ -201,8 +203,20 @@ class ChainServersRow:
         return [self.gold_amount, self.gold_price, self.selected]
 
     def submit_button_on_click(self) -> None:
+        raw_data = self.prepare_data()
+        data = dict()
 
-        print(self.prepare_data())
+        for server in raw_data[2]:
+
+            data[
+                f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][amount]"
+            ] = raw_data[0]
+            data[
+                f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
+            ] = price_calc.get_initial_price(raw_data[1])
+
+        payload = requests_worker.form_payload(data)
+        requests_worker.send_request(payload)
 
     def save_button_on_click(self) -> None:
         data = self.prepare_data()
