@@ -411,9 +411,9 @@ def remove_empty_logs() -> None:
 
 
 if __name__ == "__main__":
-    remove_empty_logs()
     create_directories()
     download_request_template()
+    remove_empty_logs()
     logging.basicConfig(
         filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
         filemode="w",
