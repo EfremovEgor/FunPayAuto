@@ -98,6 +98,26 @@ def get_servers() -> list[dict]:
 
 
 @essentials_check
+def get_prices() -> dict:
+    session = requests.Session()
+    session.headers = {"User-Agent": UserAgent().random}
+    session.cookies.update(cookies_worker.read_cookies())
+    html = session.get("https://funpay.com/chips/2/").text
+    html_objects = BeautifulSoup(html, "html.parser")
+    items = html_objects.find_all("a", {"class": "tc-item"})
+    data = dict()
+    for item in items:
+        if item.get("data-online"):
+            server = item.find("div", {"class": "tc-server hidden-xxs"}).text.strip()
+            side = item.find("div", {"class": "tc-side hidden-xxs"}).text.strip()
+            price = item.find("div", {"class": "tc-price"}).find("div").text.strip()
+            if (server, side) not in list(data.keys()):
+                data[(server, side)] = list()
+            data[(server, side)].append(float(price.split()[0].strip()))
+    return data
+
+
+@essentials_check
 def get_gold_amount() -> dict:
     session = requests.Session()
     session.headers = {"User-Agent": generate_random_useragent()}

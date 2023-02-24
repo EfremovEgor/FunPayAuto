@@ -21,6 +21,7 @@ class ChainServersRow:
         self.row = row
         self.chain_servers_frame = chain_servers_frame
         self.servers = servers
+
         self.csf_add_servers_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
             corner_radius=0,
@@ -32,7 +33,9 @@ class ChainServersRow:
             text_color=("gray10", "gray90"),
         )
         self.csf_add_servers_label.grid(row=self.row, column=0, sticky="ew", ipadx=10)
+
         servers = [list(val.keys())[0] for val in self.servers]
+
         self.csf_add_servers_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
             corner_radius=0,
@@ -44,6 +47,7 @@ class ChainServersRow:
             border_width=1,
         )
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
+
         self.csf_choose_side_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
             corner_radius=0,
@@ -58,6 +62,7 @@ class ChainServersRow:
         self.csf_choose_side_combobox.grid(
             row=self.row, column=2, sticky="ew", padx=(10, 0)
         )
+
         self.csf_add_button = customtkinter.CTkButton(
             self.chain_servers_frame,
             corner_radius=0,
@@ -174,7 +179,7 @@ class ChainServersRow:
         added_server = self.csf_add_servers_combobox.get().strip()
         servers = copy.deepcopy(self.servers)
         for server in servers:
-            if server.get(added_server, None) is not None:
+            if server.get(added_server) is not None:
                 if self.csf_choose_side_combobox.get() == "Сторона":
                     showerror(title="Error", message="Choose side")
                     return
@@ -255,7 +260,6 @@ class ChainServersRow:
         self.csf_gold_price_entry.insert(0, str(data["price"]))
 
     def clear_button_on_click(self) -> None:
-        self.load_images()
         self.selected = list()
         self.csf_add_servers_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
@@ -401,7 +405,7 @@ class ChainServersRow:
         )
         self.csf_clear_button.grid(row=self.row, column=9, sticky="ew", padx=5)
 
-    def load_images(self):
+    def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")
         self.add_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "add.png"))
