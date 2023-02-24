@@ -29,6 +29,28 @@ class PreciseDampingRaw:
         self.row = row
         with open(os.path.join(os.getcwd(), "data", "aliases.json")) as f:
             self.aliases = json.load(f)
+        self.aliases = {
+            "Азурегос": "Азу",
+            "Борейская тундра": "Тундра",
+            "Вечная Песня": "ВП",
+            "Галакронд": "Гал",
+            "Голдринн": "Дрин",
+            "Гордунни": "Дуни",
+            "Гром": "Гром",
+            "Дракономор": "Драк",
+            "Король-лич": "Лич",
+            "Пиратская Бухта": "Пират",
+            "Подземье": "Под",
+            "Разувий": "Раз",
+            "Ревущий фьорд": "РФ",
+            "Свежеватель Душ": "СД",
+            "Седогрив": "Седо",
+            "Страж Смерти": "CC",
+            "Термоштепсель": "Термо",
+            "Ткач Смерти": "Ткач",
+            "Черный Шрам": "Шрам",
+            "Ясеневый лес": "ЯЛ",
+        }
         self.precise_damping_frame = precise_damping_frame
         self.servers = servers
         self.data = dict()
@@ -304,7 +326,8 @@ class PreciseDampingRaw:
 
     def update_added_servers_label(self) -> None:
         text = " | ".join(
-            f"{self.aliases[list(server.keys())[0]]}({server['side'][0]})" for server in self.selected
+            f"{self.aliases[list(server.keys())[0]]}({server['side'][0]})"
+            for server in self.selected
         )
         self.pd_add_servers_label.configure(text=text)
 
