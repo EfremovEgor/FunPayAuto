@@ -401,7 +401,17 @@ def download_request_template() -> None:
             f.write(response.content)
 
 
+def remove_empty_logs() -> None:
+    logs_path = os.path.join(os.getcwd(), "logs")
+    for file in os.listdir(logs_path):
+        with open(os.path.join(logs_path, file), "r") as f:
+            content = f.read()
+        if not content.strip():
+            os.remove(os.path.join(logs_path, file))
+
+
 if __name__ == "__main__":
+    remove_empty_logs()
     create_directories()
     download_request_template()
     logging.basicConfig(
@@ -410,6 +420,5 @@ if __name__ == "__main__":
         format="%(asctime)s - %(message)s",
         datefmt="%d-%b-%y %H:%M:%S",
     )
-
     app = App()
     app.mainloop()
