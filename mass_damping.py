@@ -4,6 +4,8 @@ from PIL import Image
 from tkinter.messagebox import showerror
 import requests_worker
 import price_calc
+import logging
+import time
 
 
 class MassDamping:
@@ -14,6 +16,12 @@ class MassDamping:
         )
 
     def __init__(self, mass_damping_frame, servers: list[dict]) -> None:
+        logging.basicConfig(
+            filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
+            filemode="w",
+            format="%(asctime)s - %(message)s",
+            datefmt="%d-%b-%y %H:%M:%S",
+        )
         self.load_images()
         self.mass_damping_frame = mass_damping_frame
         self.servers = servers

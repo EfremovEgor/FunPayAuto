@@ -9,7 +9,6 @@ import selenium.common.exceptions as selenium_exception
 import json
 import logging
 import time
-import csv
 from mass_damping import MassDamping
 import requests
 from precise_damping import PreciseDampingRaw

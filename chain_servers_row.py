@@ -7,6 +7,8 @@ import json
 from customtkinter import filedialog
 import requests_worker
 import price_calc
+import logging
+import time
 
 
 class ChainServersRow:
@@ -16,6 +18,12 @@ class ChainServersRow:
         servers: list[dict],
         row: int = 1,
     ) -> None:
+        logging.basicConfig(
+            filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
+            filemode="w",
+            format="%(asctime)s - %(message)s",
+            datefmt="%d-%b-%y %H:%M:%S",
+        )
         self.load_images()
         self.selected = list()
         self.row = row
@@ -210,9 +218,7 @@ class ChainServersRow:
     def submit_button_on_click(self) -> None:
         raw_data = self.prepare_data()
         data = dict()
-
         for server in raw_data[2]:
-
             data[
                 f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][amount]"
             ] = raw_data[0]
@@ -241,6 +247,9 @@ class ChainServersRow:
                 )
         except AttributeError:
             return
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
 
     def load_button_on_click(self) -> None:
         try:
@@ -250,7 +259,8 @@ class ChainServersRow:
                 defaultextension=".json",
             ) as json_file:
                 data = json.load(json_file)
-        except AttributeError as ex:
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
             return
         self.selected = data["servers"]
         self.update_added_servers_label()

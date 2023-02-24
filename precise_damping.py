@@ -6,6 +6,8 @@ import requests_worker
 import price_calc
 import copy
 import data_parser
+import logging
+import time
 
 
 class PreciseDampingRaw:
@@ -15,6 +17,12 @@ class PreciseDampingRaw:
         servers: list[dict],
         row: int = 1,
     ) -> None:
+        logging.basicConfig(
+            filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
+            filemode="w",
+            format="%(asctime)s - %(message)s",
+            datefmt="%d-%b-%y %H:%M:%S",
+        )
         self.load_images()
         self.selected = list()
         self.row = row
@@ -328,9 +336,15 @@ class PreciseDampingRaw:
         try:
             min_price = float(self.pd_min_gold_price_entry.get())
         except ValueError as ex:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
             showerror(title="Error", message="Wrong gold price")
+            return
         raw_data = self.prepare_data()
-        prices = data_parser.get_prices()
+        try:
+            prices = data_parser.get_prices()
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
         data = dict()
         for server in list(raw_data[1]):
             keys = list(server.keys())
@@ -366,9 +380,13 @@ class PreciseDampingRaw:
         for i, key in enumerate(list(self.data.keys())):
             self.data[key] = str(price_calc.get_initial_price(float(values[i])))
         payload = requests_worker.form_payload(self.data)
-        print(payload)
-        print(self.data)
-        print(requests_worker.send_request(payload))
+        try:
+            response_code = requests_worker.send_request(payload)
+            if response_code != 200:
+                raise Exception("Request wasn't sent properly")
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
 
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")
