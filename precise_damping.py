@@ -8,6 +8,7 @@ import copy
 import data_parser
 import logging
 import time
+import json
 
 
 class PreciseDampingRaw:
@@ -26,6 +27,8 @@ class PreciseDampingRaw:
         self.load_images()
         self.selected = list()
         self.row = row
+        with open(os.path.join(os.getcwd(), "data", "aliases.json")) as f:
+            self.aliases = json.load(f)
         self.precise_damping_frame = precise_damping_frame
         self.servers = servers
         self.data = dict()
@@ -301,7 +304,7 @@ class PreciseDampingRaw:
 
     def update_added_servers_label(self) -> None:
         text = " | ".join(
-            f"{list(server.keys())[0]}({server['side']})" for server in self.selected
+            f"{self.aliases[list(server.keys())[0]]}({server['side'][0]})" for server in self.selected
         )
         self.pd_add_servers_label.configure(text=text)
 
@@ -355,7 +358,7 @@ class PreciseDampingRaw:
                 min(
                     number
                     for number in prices[keys[0], server[keys[1]]]
-                    if number >= min_price
+                    if number > min_price
                 )
                 - 0.01,
                 3,

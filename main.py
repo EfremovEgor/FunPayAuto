@@ -24,7 +24,7 @@ class App(customtkinter.CTk):
         self.minimal_gold = 5.0
         self.title("FunPay")
         self.geometry("1600x900")
-        self.resizable(True, False)
+        self.resizable(True, True)
         self.servers = list()
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
@@ -393,13 +393,18 @@ def create_directories() -> None:
             os.mkdir(os.path.join(os.getcwd(), dir))
 
 
-def download_request_template() -> None:
-    path = os.path.join(os.getcwd(), "data", "request_template.json")
-    if not os.path.exists(path):
+def download_essentials() -> None:
+    data_path = os.path.join(os.getcwd(), "data")
+    request_template_path = os.path.join(data_path, "request_template.json")
+    aliases_template_path = os.path.join(data_path, "aliases.json")
+    if not os.path.exists(request_template_path):
         response = requests.get("https://pastebin.com/raw/UmY7QdS1")
-        with open(path, "wb") as f:
+        with open(request_template_path, "wb") as f:
             f.write(response.content)
-
+    if not os.path.exists(aliases_template_path):
+        response = requests.get("https://pastebin.com/raw/SmiWDj42")
+        with open(aliases_template_path, "wb") as f:
+            f.write(response.content)
 
 def remove_empty_logs() -> None:
     logs_path = os.path.join(os.getcwd(), "logs")
@@ -412,7 +417,7 @@ def remove_empty_logs() -> None:
 
 if __name__ == "__main__":
     create_directories()
-    download_request_template()
+    download_essentials()
     remove_empty_logs()
     logging.basicConfig(
         filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
@@ -421,4 +426,5 @@ if __name__ == "__main__":
         datefmt="%d-%b-%y %H:%M:%S",
     )
     app = App()
+    app.iconbitmap(os.path.join(os.getcwd(), "main.ico"))
     app.mainloop()
