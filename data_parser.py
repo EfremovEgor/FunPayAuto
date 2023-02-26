@@ -11,6 +11,7 @@ from fp_exceptions import (
     ConfigNotFoundError,
 )
 from tkinter.messagebox import showerror, showwarning, showinfo
+from bs4 import SoupStrainer
 
 
 def essentials_check(func):
@@ -103,24 +104,24 @@ def get_prices() -> dict:
     session.headers = {"User-Agent": UserAgent().random}
     session.cookies.update(cookies_worker.read_cookies())
     html = session.get("https://funpay.com/chips/2/").text
-    html_objects = BeautifulSoup(html, "html.parser")
-    items = html_objects.find_all("a", {"class": "tc-item"})
+    only_online = SoupStrainer(attrs={"data-online": "1"})
+    html_objects = BeautifulSoup(html, "lxml", parse_only=only_online)
+    items = html_objects.find_all("a")
     data = dict()
     for item in items:
-        if item.get("data-online"):
-            server = item.find("div", {"class": "tc-server hidden-xxs"}).text.strip()
-            side = item.find("div", {"class": "tc-side hidden-xxs"}).text.strip()
-            price = item.find("div", {"class": "tc-price"}).find("div").text.strip()
-            if (server, side) not in list(data.keys()):
-                data[(server, side)] = list()
-            data[(server, side)].append(float(price.split()[0].strip()))
+        server = item.find("div", {"class": "tc-server hidden-xxs"}).text.strip()
+        side = item.find("div", {"class": "tc-side hidden-xxs"}).text.strip()
+        price = item.find("div", {"class": "tc-price"}).text.strip()
+        if (server, side) not in list(data.keys()):
+            data[(server, side)] = list()
+        data[(server, side)].append(float(price.split()[0].strip()))
     return data
 
 
 @essentials_check
 def get_gold_amount() -> dict:
     session = requests.Session()
-    session.headers = {"User-Agent": generate_random_useragent()}
+    session.headers = {"User-Agent": UserAgent().random}
     session.cookies.update(cookies_worker.read_cookies())
     cwd = os.getcwd()
     with open(os.path.join(cwd, "config.json"), "r") as json_file:
