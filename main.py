@@ -47,7 +47,7 @@ class App(customtkinter.CTk):
         self.status_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "status.png"))
         )
-        self.submit_min_gold_image = customtkinter.CTkImage(
+        self.submit_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "submit_min_gold.png"))
         )
         self.chain_servers_image = customtkinter.CTkImage(
@@ -193,7 +193,7 @@ class App(customtkinter.CTk):
             self, corner_radius=0, fg_color="transparent"
         )
         self.chain_servers_frame.grid_columnconfigure(10, weight=1)
-        self.chain_servers_frame.rowconfigure(n_rows + 1, weight=1)
+        self.chain_servers_frame.rowconfigure(n_rows + 2, weight=1)
         self.csf_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
             corner_radius=0,
@@ -203,8 +203,27 @@ class App(customtkinter.CTk):
             fg_color="transparent",
             text_color=("gray10", "gray90"),
         )
-
         self.csf_label.grid(row=0, column=1, sticky="ew")
+        self.csf_submit_all_button = customtkinter.CTkButton(
+            self.chain_servers_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Submit all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.submit_image,
+            command=self.csf_submit_all_button_on_click,
+        )
+        self.csf_submit_all_button.grid(
+            row=11, column=4, sticky="ew", padx=5, pady=(20)
+        )
+
         self.csf_rows = list()
         for row in range(n_rows):
             self.csf_rows.append(
@@ -214,6 +233,9 @@ class App(customtkinter.CTk):
                     row=row + 1,
                 )
             )
+
+    def csf_submit_all_button_on_click(self) -> None:
+        showinfo(title="Info", message="Not implemented")
 
     def prepare_precise_damping_frame(self) -> None:
         n_rows = 10
@@ -405,6 +427,7 @@ def download_essentials() -> None:
         response = requests.get("https://pastebin.com/raw/SmiWDj42")
         with open(aliases_template_path, "wb") as f:
             f.write(response.content)
+
 
 def remove_empty_logs() -> None:
     logs_path = os.path.join(os.getcwd(), "logs")

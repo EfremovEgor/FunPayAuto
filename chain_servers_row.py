@@ -202,11 +202,14 @@ class ChainServersRow:
         self.update_added_servers_label()
 
     def prepare_data(self) -> list:
-        try:
-            self.gold_amount = int(self.csf_gold_amount_entry.get())
-        except ValueError as ex:
-            showerror(title="Error", message="Wrong gold amount")
-            return None
+        if self.csf_gold_amount_entry.get():
+            try:
+                self.gold_amount = int(self.csf_gold_amount_entry.get())
+            except ValueError as ex:
+                showerror(title="Error", message="Wrong gold amount")
+                return None
+        else:
+            self.gold_amount = None
         try:
             self.gold_price = float(self.csf_gold_price_entry.get())
         except ValueError as ex:
@@ -220,10 +223,12 @@ class ChainServersRow:
     def submit_button_on_click(self) -> None:
         raw_data = self.prepare_data()
         data = dict()
+        print(raw_data)
         for server in raw_data[2]:
-            data[
-                f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][amount]"
-            ] = raw_data[0]
+            if raw_data[0] is not None:
+                data[
+                    f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][amount]"
+                ] = raw_data[0]
             data[
                 f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
             ] = price_calc.get_initial_price(raw_data[1])
