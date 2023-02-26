@@ -40,14 +40,34 @@ def form_payload(data: dict = None) -> dict:
     return payload
 
 
+def update_phpsessid(session: requests.Session) -> requests.Session:
+    ...
+
+
+# {
+#     "golden_key": "jdep2eq02izctj4lh4ljyog20qiwojj2",
+#     "_ym_isad": "2",
+#     "_ym_d": "1677413639",
+#     "_gid": "GA1.2.267647961.1677413639",
+#     "_ga": "GA1.2.1289151014.1677413639",
+#     "_ym_uid": "1677413639953450181",
+#     "PHPSESSID": "jz4iwR33sdUw90-V3m2lLIao-oaX4Mrw"
+# }
 def send_request(payload: dict) -> int:
     session = requests.Session()
     session.headers = {"User-Agent": UserAgent().random}
-    session.cookies.update(cookies_worker.read_cookies())
+    cookies = cookies_worker.read_cookies()
+    session.cookies.update(cookies)
+    phpsessid = session.get("https://funpay.com/chips/saveOffers").cookies.get(
+        "PHPSESSID"
+    )
+    cookies.update({"PHPSESSID": phpsessid})
+    session.cookies.update(cookies)
     html = session.get("https://funpay.com/chips/2/trade").text
     html_objects = BeautifulSoup(html, "html.parser")
     payload["csrf_token"] = json.loads(html_objects.find("body")["data-app-data"])[
         "csrf-token"
     ]
+
     response = session.post("https://funpay.com/chips/saveOffers", data=payload)
     return response.status_code

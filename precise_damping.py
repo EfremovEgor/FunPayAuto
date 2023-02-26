@@ -9,6 +9,7 @@ import data_parser
 import logging
 import time
 import json
+import playsound
 
 
 class PreciseDampingRaw:
@@ -344,6 +345,8 @@ class PreciseDampingRaw:
             showerror(title="Error", message="Wrong gold price")
             return
         raw_data = self.prepare_data()
+        if raw_data is None:
+            return
         try:
             prices = data_parser.get_prices()
         except:
@@ -391,6 +394,9 @@ class PreciseDampingRaw:
         except:
             logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
             return
+        playsound.playsound(
+            os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
+        )
 
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")

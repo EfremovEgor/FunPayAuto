@@ -9,6 +9,7 @@ import requests_worker
 import price_calc
 import logging
 import time
+import playsound
 
 
 class ChainServersRow:
@@ -223,7 +224,6 @@ class ChainServersRow:
     def submit_button_on_click(self) -> None:
         raw_data = self.prepare_data()
         data = dict()
-        print(raw_data)
         for server in raw_data[2]:
             if raw_data[0] is not None:
                 data[
@@ -235,6 +235,9 @@ class ChainServersRow:
 
         payload = requests_worker.form_payload(data)
         requests_worker.send_request(payload)
+        playsound.playsound(
+            os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
+        )
 
     def save_button_on_click(self) -> None:
         data = self.prepare_data()

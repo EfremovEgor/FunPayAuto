@@ -56,6 +56,13 @@ def essentials_check(func):
             )
             raise ex
         session.cookies.update(cookies_worker.read_cookies())
+        response = session.get("https://funpay.com/orders/trade")
+        if response.status_code == 302:
+            showerror(
+                title="Error",
+                message=str(ex)
+                + "\n\nProbably cookies are old. Try pressing Login button and login into your FP account again.",
+            )
         html = session.get("https://funpay.com/orders/").text
         html_objects = BeautifulSoup(html, "html.parser")
         title = html_objects.find("title").text.strip().lower()

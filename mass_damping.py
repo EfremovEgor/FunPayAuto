@@ -6,6 +6,7 @@ import requests_worker
 import price_calc
 import logging
 import time
+import playsound
 
 
 class MassDamping:
@@ -101,3 +102,6 @@ class MassDamping:
                 payload[key] = str(price_calc.get_initial_price(price))
         print(payload)
         requests_worker.send_request(payload)
+        playsound.playsound(
+            os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
+        )
