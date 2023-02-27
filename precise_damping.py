@@ -10,6 +10,7 @@ import logging
 import time
 import json
 import playsound
+from customtkinter import filedialog
 
 
 class PreciseDampingRaw:
@@ -38,7 +39,7 @@ class PreciseDampingRaw:
             corner_radius=0,
             height=20,
             width=100,
-            font=customtkinter.CTkFont(size=15),
+            font=customtkinter.CTkFont(size=12),
             text=f"None",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
@@ -187,7 +188,7 @@ class PreciseDampingRaw:
             height=20,
             width=30,
             font=customtkinter.CTkFont(size=15),
-            text="Save",
+            text="Load",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
@@ -205,7 +206,7 @@ class PreciseDampingRaw:
             corner_radius=0,
             height=20,
             width=100,
-            font=customtkinter.CTkFont(size=15),
+            font=customtkinter.CTkFont(size=12),
             text=f"None",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
@@ -333,15 +334,56 @@ class PreciseDampingRaw:
             command=self.clear_button_on_click,
         )
         self.pd_clear_button.grid(row=self.row, column=10, sticky="ew", padx=5)
+        self.pd_save_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Save",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.save_image,
+            command=self.save_button_on_click,
+        )
+        self.pd_save_button.grid(row=self.row, column=8, sticky="ew", padx=5)
+        self.pd_load_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Load",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.load_image,
+            command=self.load_button_on_click,
+        )
+        self.pd_load_button.grid(row=self.row, column=9, sticky="ew", padx=5)
 
     def clear_button_on_click(self) -> None:
         self.clear()
 
     def update_added_servers_label(self) -> None:
-        text = " | ".join(
+        servers = [
             f"{self.aliases[list(server.keys())[0]]}({server['side'][0]})"
             for server in self.selected
-        )
+        ]
+        servers_count = 3
+        chunks_len = len(servers) // servers_count + 1
+        chunks = list()
+        for i in range(chunks_len):
+            chunks.append(
+                servers[i * servers_count : i * servers_count + servers_count]
+            )
+        chunk_text = list()
+        for chunk in chunks:
+            chunk_text.append(" | ".join(server for server in chunk))
+        text = "\n".join(servers for servers in chunk_text).strip()
         self.pd_add_servers_label.configure(text=text)
 
     def add_button_on_click(self) -> None:
@@ -427,8 +469,12 @@ class PreciseDampingRaw:
             ] = ""
         self.data = data
         values = self.pd_final_gold_price_entry.get().strip().split(",")
-        if len(values) < len(list(self.data.keys())):
+        if not values or values[0] == "":
+            showerror(title="Error", message="No values")
+            return
+        if len(values) != len(list(self.data.keys())):
             showerror(title="Error", message="Not enough params")
+            return
         for i, key in enumerate(list(self.data.keys())):
             self.data[key] = str(price_calc.get_initial_price(float(values[i])))
         payload = requests_worker.form_payload(self.data)
@@ -444,10 +490,54 @@ class PreciseDampingRaw:
         )
 
     def load_button_on_click(self) -> None:
-        ...
+        try:
+            with filedialog.askopenfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                filetypes=[("Json Documents", "*.json")],
+                defaultextension=".json",
+            ) as json_file:
+                data = json.load(json_file)
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
+        self.selected = data["servers"]
+        self.update_added_servers_label()
+        self.pd_min_gold_price_entry.delete(0, len(self.pd_min_gold_price_entry.get()))
+        self.pd_final_gold_price_entry.delete(
+            0, len(self.pd_final_gold_price_entry.get())
+        )
+        self.pd_min_gold_price_entry.insert(0, str(data["min_gold_price"]))
+        values = data["values"]
+        if values is not None:
+            self.pd_final_gold_price_entry.insert(
+                0, ",".join([str(val) for val in values])
+            )
 
     def save_button_on_click(self) -> None:
-        ...
+        raw_data = self.prepare_data()
+        values = self.pd_final_gold_price_entry.get().strip().split(",")
+        data = {
+            "servers": raw_data[1],
+            "min_gold_price": raw_data[0],
+            "values": values if values else None,
+        }
+        try:
+            with filedialog.asksaveasfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                initialfile="Untitled.json",
+                defaultextension=".json",
+                filetypes=[("Json Documents", "*.json")],
+            ) as file:
+                json.dump(
+                    data,
+                    file,
+                    indent=4,
+                )
+        except AttributeError:
+            return
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
 
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")

@@ -122,6 +122,15 @@ def get_prices() -> dict:
         if (server, side) not in list(data.keys()):
             data[(server, side)] = list()
         data[(server, side)].append(float(price.split()[0].strip()))
+    any_servers_prices_dire = data.pop(("Любой", "Орда"), None)
+    any_servers_prices_aliance = data.pop(("Любой", "Альянс"), None)
+    any_servers_prices = data.pop(("Любой", "Любая"), None)
+    for key in list(data.keys()):
+        data[key].extend(any_servers_prices)
+        if key[1] == "Орда":
+            data[key].extend(any_servers_prices_dire)
+        if key[1] == "Альянс":
+            data[key].extend(any_servers_prices_aliance)
     return data
 
 

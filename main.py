@@ -376,6 +376,7 @@ class App(customtkinter.CTk):
                     row=self.n_rows,
                 )
             )
+            self.load_servers()
         else:
             self.csf_rows[-1].destroy()
             self.csf_rows.pop()

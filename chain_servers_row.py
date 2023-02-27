@@ -37,12 +37,14 @@ class ChainServersRow:
             corner_radius=0,
             height=20,
             width=140,
-            font=customtkinter.CTkFont(size=15),
+            font=customtkinter.CTkFont(size=12),
             text=f"None",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
         )
-        self.csf_add_servers_label.grid(row=self.row, column=0, sticky="ew", ipadx=10)
+        self.csf_add_servers_label.grid(
+            row=self.row, column=0, sticky="ew", ipadx=10, ipady=5
+        )
 
         servers = [list(val.keys())[0] for val in self.servers]
 
@@ -181,10 +183,21 @@ class ChainServersRow:
         self.csf_clear_button.grid(row=self.row, column=9, sticky="ew", padx=5)
 
     def update_added_servers_label(self) -> None:
-        text = " | ".join(
+        servers = [
             f"{self.aliases[list(server.keys())[0]]}({server['side'][0]})"
             for server in self.selected
-        )
+        ]
+        servers_count = 3
+        chunks_len = len(servers) // servers_count + 1
+        chunks = list()
+        for i in range(chunks_len):
+            chunks.append(
+                servers[i * servers_count : i * servers_count + servers_count]
+            )
+        chunk_text = list()
+        for chunk in chunks:
+            chunk_text.append(" | ".join(server for server in chunk))
+        text = "\n".join(servers for servers in chunk_text).strip()
         self.csf_add_servers_label.configure(text=text)
 
     def add_button_on_click(self) -> None:
@@ -285,17 +298,20 @@ class ChainServersRow:
 
     def clear(self) -> None:
         self.selected = list()
+        self.csf_add_servers_label.destroy()
         self.csf_add_servers_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
             corner_radius=0,
             height=20,
             width=100,
-            font=customtkinter.CTkFont(size=15),
+            font=customtkinter.CTkFont(size=12),
             text=f"None",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
         )
-        self.csf_add_servers_label.grid(row=self.row, column=0, sticky="ew", ipadx=10)
+        self.csf_add_servers_label.grid(
+            row=self.row, column=0, sticky="ew", ipadx=10, ipady=5
+        )
         servers = [list(val.keys())[0] for val in self.servers]
         self.csf_add_servers_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
