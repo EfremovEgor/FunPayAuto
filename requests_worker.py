@@ -30,11 +30,12 @@ def get_necessary_values() -> dict:
     return necessary_values
 
 
-def form_payload(data: dict = None) -> dict:
+def form_payload(data: dict = None, blank=False) -> dict:
     path = os.path.join(os.getcwd(), "data", "request_template.json")
     with open(path, "r") as f:
         payload = json.load(f)
-    payload.update(get_necessary_values())
+    if not blank:
+        payload.update(get_necessary_values())
     if data is not None:
         payload.update(data)
     return payload

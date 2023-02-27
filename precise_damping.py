@@ -150,7 +150,7 @@ class PreciseDampingRaw:
         )
         self.pd_send_button.grid(row=self.row, column=7, sticky="ew", padx=5)
 
-        self.csf_clear_button = customtkinter.CTkButton(
+        self.pd_clear_button = customtkinter.CTkButton(
             self.precise_damping_frame,
             corner_radius=0,
             height=20,
@@ -164,9 +164,40 @@ class PreciseDampingRaw:
             image=self.pd_clear_image,
             command=self.clear_button_on_click,
         )
-        self.csf_clear_button.grid(row=self.row, column=9, sticky="ew", padx=5)
+        self.pd_clear_button.grid(row=self.row, column=10, sticky="ew", padx=5)
 
-    def clear_button_on_click(self) -> None:
+        self.pd_save_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Save",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.save_image,
+            command=self.save_button_on_click,
+        )
+        self.pd_save_button.grid(row=self.row, column=8, sticky="ew", padx=5)
+        self.pd_load_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Save",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.load_image,
+            command=self.load_button_on_click,
+        )
+        self.pd_load_button.grid(row=self.row, column=9, sticky="ew", padx=5)
+
+    def clear(self) -> None:
         self.selected = list()
         self.data = dict()
         self.pd_add_servers_label = customtkinter.CTkLabel(
@@ -287,7 +318,7 @@ class PreciseDampingRaw:
         )
         self.pd_send_button.grid(row=self.row, column=7, sticky="ew", padx=5)
 
-        self.csf_clear_button = customtkinter.CTkButton(
+        self.pd_clear_button = customtkinter.CTkButton(
             self.precise_damping_frame,
             corner_radius=0,
             height=20,
@@ -301,7 +332,10 @@ class PreciseDampingRaw:
             image=self.pd_clear_image,
             command=self.clear_button_on_click,
         )
-        self.csf_clear_button.grid(row=self.row, column=9, sticky="ew", padx=5)
+        self.pd_clear_button.grid(row=self.row, column=10, sticky="ew", padx=5)
+
+    def clear_button_on_click(self) -> None:
+        self.clear()
 
     def update_added_servers_label(self) -> None:
         text = " | ".join(
@@ -326,14 +360,16 @@ class PreciseDampingRaw:
                 self.selected.append(server)
         self.update_added_servers_label()
 
-    def prepare_data(self) -> list:
+    def prepare_data(self, silent=False) -> list:
         try:
             self.min_gold_price = float(self.pd_min_gold_price_entry.get())
         except ValueError as ex:
-            showerror(title="Error", message="Wrong gold price")
+            if not silent:
+                showerror(title="Error", message="Wrong gold price")
             return None
         if not self.selected:
-            showerror(title="Error", message="No servers selected")
+            if not silent:
+                showerror(title="Error", message="No servers selected")
             return None
         return [self.min_gold_price, self.selected]
 
@@ -381,6 +417,15 @@ class PreciseDampingRaw:
         showinfo(title="Info", message=message)
 
     def send_button_on_click(self) -> None:
+        raw_data = self.prepare_data()
+        if raw_data is None:
+            return
+        data = dict()
+        for server in list(raw_data[1]):
+            data[
+                f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
+            ] = ""
+        self.data = data
         values = self.pd_final_gold_price_entry.get().strip().split(",")
         if len(values) < len(list(self.data.keys())):
             showerror(title="Error", message="Not enough params")
@@ -398,6 +443,12 @@ class PreciseDampingRaw:
             os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
         )
 
+    def load_button_on_click(self) -> None:
+        ...
+
+    def save_button_on_click(self) -> None:
+        ...
+
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")
         self.add_image = customtkinter.CTkImage(
@@ -411,4 +462,10 @@ class PreciseDampingRaw:
         )
         self.pd_clear_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "csf_clear.png"))
+        )
+        self.save_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_save.png"))
+        )
+        self.load_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "csf_load.png"))
         )

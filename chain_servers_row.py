@@ -36,7 +36,7 @@ class ChainServersRow:
             self.chain_servers_frame,
             corner_radius=0,
             height=20,
-            width=100,
+            width=140,
             font=customtkinter.CTkFont(size=15),
             text=f"None",
             fg_color="transparent",
@@ -62,6 +62,7 @@ class ChainServersRow:
             self.chain_servers_frame,
             corner_radius=0,
             height=28,
+            width=140,
             font=customtkinter.CTkFont(size=15),
             text_color=("gray10", "gray90"),
             state="readonly",
@@ -202,22 +203,25 @@ class ChainServersRow:
                 self.selected.append(server)
         self.update_added_servers_label()
 
-    def prepare_data(self) -> list:
+    def prepare_data(self, silent=False) -> list:
         if self.csf_gold_amount_entry.get():
             try:
                 self.gold_amount = int(self.csf_gold_amount_entry.get())
             except ValueError as ex:
-                showerror(title="Error", message="Wrong gold amount")
+                if not silent:
+                    showerror(title="Error", message="Wrong gold amount")
                 return None
         else:
             self.gold_amount = None
         try:
             self.gold_price = float(self.csf_gold_price_entry.get())
         except ValueError as ex:
-            showerror(title="Error", message="Wrong gold price")
+            if not silent:
+                showerror(title="Error", message="Wrong gold price")
             return None
         if not self.selected:
-            showerror(title="Error", message="No servers selected")
+            if not silent:
+                showerror(title="Error", message="No servers selected")
             return None
         return [self.gold_amount, self.gold_price, self.selected]
 
@@ -279,7 +283,7 @@ class ChainServersRow:
         self.csf_gold_amount_entry.insert(0, str(data["amount"]))
         self.csf_gold_price_entry.insert(0, str(data["price"]))
 
-    def clear_button_on_click(self) -> None:
+    def clear(self) -> None:
         self.selected = list()
         self.csf_add_servers_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
@@ -425,6 +429,9 @@ class ChainServersRow:
         )
         self.csf_clear_button.grid(row=self.row, column=9, sticky="ew", padx=5)
 
+    def clear_button_on_click(self) -> None:
+        self.clear()
+
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")
         self.add_image = customtkinter.CTkImage(
@@ -442,3 +449,42 @@ class ChainServersRow:
         self.csf_clear_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "csf_clear.png"))
         )
+
+    def destroy(self):
+        self.csf_add_button.destroy()
+        self.csf_add_servers_combobox.destroy()
+        self.csf_add_servers_label.destroy()
+        self.csf_choose_side_combobox.destroy()
+        self.csf_clear_button.destroy()
+        self.csf_submit_button.destroy()
+        self.csf_load_button.destroy()
+        self.csf_save_button.destroy()
+        self.csf_gold_amount_entry.destroy()
+        self.csf_gold_price_entry.destroy()
+
+    def represent(self) -> dict:
+        if self.csf_gold_amount_entry.get():
+            try:
+                self.gold_amount = int(self.csf_gold_amount_entry.get())
+            except ValueError as ex:
+                return None
+        else:
+            self.gold_amount = None
+        try:
+            self.gold_price = float(self.csf_gold_price_entry.get())
+        except ValueError as ex:
+            return None
+        if not self.selected:
+            showerror(title="Error", message="No servers selected")
+            return None
+        raw_data = [self.gold_amount, self.gold_price, self.selected]
+        data = dict()
+        for server in raw_data[2]:
+            if raw_data[0] is not None:
+                data[
+                    f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][amount]"
+                ] = raw_data[0]
+            data[
+                f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
+            ] = price_calc.get_initial_price(raw_data[1])
+        return data

@@ -12,6 +12,9 @@ import time
 from mass_damping import MassDamping
 import requests
 from precise_damping import PreciseDampingRaw
+from customtkinter import filedialog
+import requests_worker
+import playsound
 
 DIRECTORIES = ["data", "downloads", "logs", "saves"]
 customtkinter.set_appearance_mode("System")
@@ -20,6 +23,7 @@ customtkinter.set_default_color_theme("blue")
 
 class App(customtkinter.CTk):
     def __init__(self):
+
         super().__init__()
         self.minimal_gold = 5.0
         self.title("FunPay")
@@ -73,6 +77,15 @@ class App(customtkinter.CTk):
         )
         self.precise_damping_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "precise_damping.png"))
+        )
+        self.add_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "add.png"))
+        )
+        self.minus_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "minus.png"))
+        )
+        self.plus_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "plus.png"))
         )
 
     def prepare_navigation_frame(self) -> None:
@@ -188,12 +201,19 @@ class App(customtkinter.CTk):
         self.reupload_servers.grid(row=7, column=0, sticky="ew")
 
     def prepare_chain_servers_frame(self) -> None:
-        n_rows = 10
+        self.n_rows = 12
+        path = os.path.join(os.getcwd(), "config.json")
+        if os.path.exists(path):
+            with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
+                config = json.load(f)
+                self.n_rows = config.get("csf_row_count", 12)
+        else:
+            self.n_rows = 12
         self.chain_servers_frame = customtkinter.CTkFrame(
             self, corner_radius=0, fg_color="transparent"
         )
         self.chain_servers_frame.grid_columnconfigure(10, weight=1)
-        self.chain_servers_frame.rowconfigure(n_rows + 2, weight=1)
+        self.chain_servers_frame.rowconfigure(self.n_rows + 20, weight=1)
         self.csf_label = customtkinter.CTkLabel(
             self.chain_servers_frame,
             corner_radius=0,
@@ -221,11 +241,88 @@ class App(customtkinter.CTk):
             command=self.csf_submit_all_button_on_click,
         )
         self.csf_submit_all_button.grid(
-            row=11, column=4, sticky="ew", padx=5, pady=(20)
+            row=self.n_rows + 1, column=6, sticky="ew", padx=5, pady=(20)
+        )
+        self.csf_load_all_button = customtkinter.CTkButton(
+            self.chain_servers_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Load all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.csf_load_image,
+            command=self.csf_load_all_button_on_click,
+        )
+        self.csf_load_all_button.grid(
+            row=self.n_rows + 1, column=8, sticky="ew", padx=5, pady=(20)
+        )
+        self.csf_save_all_button = customtkinter.CTkButton(
+            self.chain_servers_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Save all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.csf_save_image,
+            command=self.csf_save_all_button_on_click,
+        )
+        self.csf_save_all_button.grid(
+            row=self.n_rows + 1, column=7, sticky="ew", padx=5, pady=(20)
         )
 
-        self.csf_rows = list()
-        for row in range(n_rows):
+        self.csf_add_row_button = customtkinter.CTkButton(
+            self.chain_servers_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Add row",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.plus_image,
+            command=self.csf_add_row_button_on_click,
+        )
+        self.csf_add_row_button.grid(
+            row=self.n_rows + 1, column=0, sticky="ew", padx=5, pady=(20)
+        )
+        self.csf_remove_row_button = customtkinter.CTkButton(
+            self.chain_servers_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Remove row",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.minus_image,
+            command=self.csf_remove_row_button_on_click,
+        )
+        self.csf_remove_row_button.grid(
+            row=self.n_rows + 1, column=1, sticky="ew", padx=5, pady=(20)
+        )
+        self.csf_rows: list[ChainServersRow] = list()
+
+        for row in range(self.n_rows):
             self.csf_rows.append(
                 ChainServersRow(
                     chain_servers_frame=self.chain_servers_frame,
@@ -234,15 +331,121 @@ class App(customtkinter.CTk):
                 )
             )
 
+    def csf_save_all_button_on_click(self) -> None:
+        data = list()
+        for row in self.csf_rows:
+            raw_data = row.prepare_data(silent=True)
+            if raw_data is not None:
+                data.append(
+                    {
+                        "amount": raw_data[0],
+                        "price": raw_data[1],
+                        "servers": raw_data[2],
+                    }
+                )
+        if not data:
+            return
+        try:
+            with filedialog.asksaveasfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                initialfile="Untitled.json",
+                defaultextension=".json",
+                filetypes=[("Json Documents", "*.json")],
+            ) as file:
+                json.dump(
+                    data,
+                    file,
+                    indent=4,
+                )
+        except AttributeError:
+            return
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
+
+    def change_csf_row_count(self, value: int) -> None:
+        self.n_rows += value
+        self.chain_servers_frame.rowconfigure(self.n_rows + 3, weight=0)
+        for row in self.csf_rows:
+            row.chain_servers_frame = self.chain_servers_frame
+        if value > 0:
+            self.csf_rows.append(
+                ChainServersRow(
+                    chain_servers_frame=self.chain_servers_frame,
+                    servers=self.servers,
+                    row=self.n_rows,
+                )
+            )
+        else:
+            self.csf_rows[-1].destroy()
+            self.csf_rows.pop()
+        self.csf_add_row_button.grid(row=self.n_rows + 1, column=0, sticky="ew", padx=5)
+        self.csf_save_all_button.grid(
+            row=self.n_rows + 1, column=7, sticky="ew", padx=5
+        )
+        self.csf_load_all_button.grid(
+            row=self.n_rows + 1, column=8, sticky="ew", padx=5
+        )
+        self.csf_submit_all_button.grid(
+            row=self.n_rows + 1, column=6, sticky="ew", padx=5
+        )
+        self.csf_remove_row_button.grid(
+            row=self.n_rows + 1, column=1, sticky="ew", padx=5
+        )
+        with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
+            config = json.load(f)
+            config.update({"csf_row_count": self.n_rows})
+        with open(os.path.join(os.getcwd(), "config.json"), "w") as f:
+            json.dump(config, f, indent=4)
+
+    def csf_add_row_button_on_click(self) -> None:
+        self.change_csf_row_count(1)
+
+    def csf_remove_row_button_on_click(self) -> None:
+        self.change_csf_row_count(-1)
+
+    def csf_load_all_button_on_click(self) -> None:
+        try:
+            with filedialog.askopenfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                filetypes=[("Json Documents", "*.json")],
+                defaultextension=".json",
+            ) as json_file:
+                data = json.load(json_file)
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
+        for i, row in enumerate(self.csf_rows):
+            if i < len(data):
+                row.selected = data[i]["servers"]
+                row.update_added_servers_label()
+                row.csf_gold_amount_entry.delete(
+                    0, len(row.csf_gold_amount_entry.get())
+                )
+                row.csf_gold_price_entry.delete(0, len(row.csf_gold_price_entry.get()))
+                row.csf_gold_amount_entry.insert(0, str(data[i]["amount"]))
+                row.csf_gold_price_entry.insert(0, str(data[i]["price"]))
+            else:
+                row.clear()
+
     def csf_submit_all_button_on_click(self) -> None:
-        showinfo(title="Info", message="Not implemented")
+        payload = dict()
+        for row in self.csf_rows:
+            data = row.represent()
+            if data is not None:
+                payload.update(data)
+        payload = requests_worker.form_payload(payload)
+        requests_worker.send_request(payload)
+        playsound.playsound(
+            os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
+        )
 
     def prepare_precise_damping_frame(self) -> None:
         n_rows = 10
         self.precise_damping_frame = customtkinter.CTkFrame(
             self, corner_radius=0, fg_color="transparent"
         )
-        self.precise_damping_frame.grid_columnconfigure(10, weight=1)
+        self.precise_damping_frame.grid_columnconfigure(11, weight=1)
         self.precise_damping_frame.rowconfigure(n_rows + 1, weight=1)
         self.pd_label = customtkinter.CTkLabel(
             self.precise_damping_frame,
@@ -376,6 +579,8 @@ class App(customtkinter.CTk):
             "cookies_path": "data\\cookies.json",
             "servers_path": "data\\servers.json",
             "trades_page_url": "https://funpay.com/chips/2/trade",
+            "csf_row_count": 12,
+            "pd_row_count": 6,
         }
         with open(os.path.join(os.getcwd(), "config.json"), "w") as file:
             json.dump(config_dict, file, indent=4)
