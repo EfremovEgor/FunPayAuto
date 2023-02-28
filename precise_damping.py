@@ -539,6 +539,19 @@ class PreciseDampingRaw:
             logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
             return
 
+    def destroy(self) -> None:
+        self.pd_add_button.destroy()
+        self.pd_add_servers_combobox.destroy()
+        self.pd_add_servers_label.destroy()
+        self.pd_choose_side_combobox.destroy()
+        self.pd_clear_button.destroy()
+        self.pd_final_gold_price_entry.destroy()
+        self.pd_min_gold_price_entry.destroy()
+        self.pd_save_button.destroy()
+        self.pd_send_button.destroy()
+        self.pd_submit_button.destroy()
+        self.pd_load_button.destroy()
+
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")
         self.add_image = customtkinter.CTkImage(

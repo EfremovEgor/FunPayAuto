@@ -115,7 +115,11 @@ def get_prices() -> dict:
     html_objects = BeautifulSoup(html, "lxml", parse_only=only_online)
     items = html_objects.find_all("a")
     data = dict()
+    with open(os.path.join(os.getcwd(), "config.json")) as f:
+        username = json.load(f).get("username")
     for item in items:
+        if item.find("div", "media-user-name").text.strip() == username:
+            continue
         server = item.find("div", {"class": "tc-server hidden-xxs"}).text.strip()
         side = item.find("div", {"class": "tc-side hidden-xxs"}).text.strip()
         price = item.find("div", {"class": "tc-price"}).text.strip()
@@ -154,6 +158,22 @@ def get_gold_amount() -> dict:
     for entry in entries:
         gold_amounts[entry["name"].strip()] = entry["value"].strip()
     return gold_amounts
+
+
+@essentials_check
+def get_username() -> str:
+    session = requests.Session()
+    session.headers = {"User-Agent": UserAgent().random}
+    session.cookies.update(cookies_worker.read_cookies())
+    cwd = os.getcwd()
+    with open(os.path.join(cwd, "config.json"), "r") as json_file:
+        config = json.load(json_file)
+    html = session.get(
+        config.get("trades_page_url", "https://funpay.com/chips/2/trade")
+    ).text
+    html_objects = BeautifulSoup(html, "lxml")
+
+    return html_objects.find("div", {"class": "user-link-name"}).text
 
 
 @essentials_check

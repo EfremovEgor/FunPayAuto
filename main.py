@@ -23,7 +23,13 @@ customtkinter.set_default_color_theme("blue")
 
 class App(customtkinter.CTk):
     def __init__(self):
+        self.username = None
+        path = os.path.join(os.getcwd(), "config.json")
+        if os.path.exists(path):
+            with open(path, "r") as f:
+                self.username = json.load(f).get("username", None)
 
+        print(self.username)
         super().__init__()
         self.minimal_gold = 5.0
         self.title("FunPay")
@@ -106,6 +112,9 @@ class App(customtkinter.CTk):
             image=self.home_image,
             command=self.login_button_on_click,
         )
+        path = os.path.join(os.getcwd(), "config.json")
+        if self.username is not None:
+            self.login_button.configure(text=self.username)
         self.login_button.grid(row=1, column=0, sticky="ew")
         self.status_button = customtkinter.CTkButton(
             self.navigation_frame,
@@ -201,7 +210,6 @@ class App(customtkinter.CTk):
         self.reupload_servers.grid(row=7, column=0, sticky="ew")
 
     def prepare_chain_servers_frame(self) -> None:
-        self.n_rows = 12
         path = os.path.join(os.getcwd(), "config.json")
         if os.path.exists(path):
             with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
@@ -442,12 +450,18 @@ class App(customtkinter.CTk):
         )
 
     def prepare_precise_damping_frame(self) -> None:
-        n_rows = 10
+        path = os.path.join(os.getcwd(), "config.json")
+        if os.path.exists(path):
+            with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
+                config = json.load(f)
+                self.pd_n_rows = config.get("pd_row_count", 6)
+        else:
+            self.pd_n_rows = 6
         self.precise_damping_frame = customtkinter.CTkFrame(
             self, corner_radius=0, fg_color="transparent"
         )
         self.precise_damping_frame.grid_columnconfigure(11, weight=1)
-        self.precise_damping_frame.rowconfigure(n_rows + 1, weight=1)
+        self.precise_damping_frame.rowconfigure(self.pd_n_rows + 20, weight=1)
         self.pd_label = customtkinter.CTkLabel(
             self.precise_damping_frame,
             corner_radius=0,
@@ -458,8 +472,9 @@ class App(customtkinter.CTk):
             text_color=("gray10", "gray90"),
         )
         self.pd_label.grid(row=0, column=1, sticky="ew")
-        self.pd_rows = list()
-        for row in range(n_rows):
+        self.pd_rows: list[PreciseDampingRaw] = list()
+
+        for row in range(self.pd_n_rows):
             self.pd_rows.append(
                 PreciseDampingRaw(
                     precise_damping_frame=self.precise_damping_frame,
@@ -467,6 +482,79 @@ class App(customtkinter.CTk):
                     row=row + 1,
                 )
             )
+        self.pd_add_row_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Add row",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.plus_image,
+            command=self.pd_add_row_button_on_click,
+        )
+        self.pd_add_row_button.grid(
+            row=self.pd_n_rows + 1, column=0, sticky="ew", padx=5, pady=(20)
+        )
+        self.pd_remove_row_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Remove row",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.minus_image,
+            command=self.pd_remove_row_button_on_click,
+        )
+        self.pd_remove_row_button.grid(
+            row=self.pd_n_rows + 1, column=1, sticky="ew", padx=5, pady=(20)
+        )
+
+    def pd_add_row_button_on_click(self) -> None:
+        self.change_pd_row_count(1)
+
+    def pd_remove_row_button_on_click(self) -> None:
+        self.change_pd_row_count(-1)
+
+    def change_pd_row_count(self, value: int) -> None:
+        self.pd_n_rows += value
+        self.precise_damping_frame.rowconfigure(self.pd_n_rows + 3, weight=0)
+        for row in self.pd_rows:
+            row.precise_damping_frame = self.precise_damping_frame
+        if value > 0:
+            self.pd_rows.append(
+                PreciseDampingRaw(
+                    precise_damping_frame=self.precise_damping_frame,
+                    servers=self.servers,
+                    row=self.pd_n_rows,
+                )
+            )
+            self.load_servers()
+        else:
+            self.pd_rows[-1].destroy()
+            self.pd_rows.pop()
+        self.pd_add_row_button.grid(
+            row=self.pd_n_rows + 1, column=0, sticky="ew", padx=5
+        )
+        self.pd_remove_row_button.grid(
+            row=self.pd_n_rows + 1, column=1, sticky="ew", padx=5
+        )
+        with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
+            config = json.load(f)
+            config.update({"pd_row_count": self.pd_n_rows})
+        with open(os.path.join(os.getcwd(), "config.json"), "w") as f:
+            json.dump(config, f, indent=4)
 
     def prepare_mass_damping(self) -> None:
         self.mass_damping_frame = customtkinter.CTkFrame(
@@ -582,6 +670,7 @@ class App(customtkinter.CTk):
             "trades_page_url": "https://funpay.com/chips/2/trade",
             "csf_row_count": 12,
             "pd_row_count": 6,
+            "username": self.username,
         }
         with open(os.path.join(os.getcwd(), "config.json"), "w") as file:
             json.dump(config_dict, file, indent=4)
@@ -595,6 +684,10 @@ class App(customtkinter.CTk):
         showinfo(title="OK", message="Everything is ok.")
 
     def login_button_on_click(self) -> None:
+        path = os.path.join(os.getcwd(), "config.json")
+        if not os.path.exists(path):
+            showerror(title="Error", message="No config file found")
+            return
         try:
             cookies = cw.get_cookies()
 
@@ -613,6 +706,17 @@ class App(customtkinter.CTk):
             logging.exception()
             return
         cw.save_cookies(cookies)
+        try:
+            self.username = dp.get_username()
+        except Exception:
+            logging.exception()
+            return
+        with open(path, "r") as f:
+            config = json.load(f)
+            config["username"] = self.username
+        with open(path, "w") as f:
+            json.dump(config, f, indent=4)
+        self.login_button.configure(text=self.username)
 
 
 def create_directories() -> None:
