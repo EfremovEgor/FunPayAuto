@@ -11,7 +11,7 @@ def get_necessary_values() -> dict:
     session.headers = {"User-Agent": UserAgent().random}
     session.cookies.update(cookies_worker.read_cookies())
     html = session.get("https://funpay.com/chips/2/trade").text
-    html_objects = BeautifulSoup(html, "html.parser")
+    html_objects = BeautifulSoup(html, "lxml")
     price_objects = html_objects.find_all("input", {"class": "form-control price"})
     amount_objects = html_objects.find_all("input", {"class": "form-control amount"})
     necessary_values = dict()
@@ -52,7 +52,7 @@ def send_request(payload: dict) -> int:
     cookies.update({"PHPSESSID": phpsessid})
     session.cookies.update(cookies)
     html = session.get("https://funpay.com/chips/2/trade").text
-    html_objects = BeautifulSoup(html, "html.parser")
+    html_objects = BeautifulSoup(html, "lxml")
     payload["csrf_token"] = json.loads(html_objects.find("body")["data-app-data"])[
         "csrf-token"
     ]

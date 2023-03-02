@@ -64,7 +64,7 @@ def essentials_check(func):
                 + "\n\nProbably cookies are old. Try pressing Login button and login into your FP account again.",
             )
         html = session.get("https://funpay.com/orders/").text
-        html_objects = BeautifulSoup(html, "html.parser")
+        html_objects = BeautifulSoup(html, "lxml")
         title = html_objects.find("title").text.strip().lower()
         if title is None or any(
             item in html_objects.find("title").text.strip().lower()
@@ -94,7 +94,7 @@ def get_servers() -> list[dict]:
     with open(os.path.join(cwd, "config.json"), "r") as json_file:
         config = json.load(json_file)
     html = session.get(config.get("goods_page_url", "https://funpay.com/chips/2/")).text
-    html_objects = BeautifulSoup(html, "html.parser")
+    html_objects = BeautifulSoup(html, "lxml")
     servers = [
         {server.text.strip(): int(server["value"])}
         for server in html_objects.find(
@@ -149,7 +149,7 @@ def get_gold_amount() -> dict:
     html = session.get(
         config.get("trades_page_url", "https://funpay.com/chips/2/trade")
     ).text
-    html_objects = BeautifulSoup(html, "html.parser")
+    html_objects = BeautifulSoup(html, "lxml")
     gold_amounts = dict()
     n_servers = 43
     entries = html_objects.find_all("input", attrs={"class": "form-control amount"})[

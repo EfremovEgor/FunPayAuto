@@ -404,7 +404,10 @@ class PreciseDampingRaw:
 
     def prepare_data(self, silent=False) -> list:
         try:
-            self.min_gold_price = float(self.pd_min_gold_price_entry.get())
+            if self.pd_min_gold_price_entry.get():
+                self.min_gold_price = float(self.pd_min_gold_price_entry.get())
+            else:
+                self.min_gold_price = None
         except ValueError as ex:
             if not silent:
                 showerror(title="Error", message="Wrong gold price")
@@ -452,9 +455,24 @@ class PreciseDampingRaw:
             0, ",".join([str(val) for val in list(data.values())])
         )
         self.data = data
+        pre_edit_prices = requests_worker.get_necessary_values()
+        pre_edit_prices_selected = list()
+        for server in self.selected:
+            pre_edit_prices_selected.append(
+                pre_edit_prices[
+                    f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
+                ]
+            )
+        print(pre_edit_prices_selected)
         message = "\n".join(
-            f"{list(server.keys())[0]}({server['side']}) -> {price}"
-            for server, price in list(zip(self.selected, list(self.data.values())))
+            f"{list(server.keys())[0]}({server['side']}) {price_calc.get_final_price(float(pre_price))} -> {price}"
+            for server, price, pre_price in list(
+                zip(
+                    self.selected,
+                    list(self.data.values()),
+                    pre_edit_prices_selected,
+                )
+            )
         )
         showinfo(title="Info", message=message)
 

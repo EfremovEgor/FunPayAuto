@@ -520,6 +520,107 @@ class App(customtkinter.CTk):
         self.pd_remove_row_button.grid(
             row=self.pd_n_rows + 1, column=1, sticky="ew", padx=5, pady=(20)
         )
+        self.pd_load_all_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Load all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.csf_load_image,
+            command=self.pd_load_all_button_on_click,
+        )
+        self.pd_load_all_button.grid(
+            row=self.pd_n_rows + 1, column=9, sticky="ew", padx=5, pady=(20)
+        )
+        self.pd_save_all_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Save all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.csf_save_image,
+            command=self.pd_save_all_button_on_click,
+        )
+        self.pd_save_all_button.grid(
+            row=self.pd_n_rows + 1, column=8, sticky="ew", padx=5, pady=(20)
+        )
+
+    def pd_save_all_button_on_click(self) -> None:
+        data = list()
+        for row in self.pd_rows:
+            raw_data = row.prepare_data(silent=True)
+            if raw_data is not None:
+                values = row.pd_final_gold_price_entry.get().strip().split(",")
+                data.append(
+                    {
+                        "servers": raw_data[1],
+                        "min_gold_price": raw_data[0],
+                        "values": values if values else None,
+                    }
+                )
+        if not data:
+            return
+        try:
+            with filedialog.asksaveasfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                initialfile="Untitled.json",
+                defaultextension=".json",
+                filetypes=[("Json Documents", "*.json")],
+            ) as file:
+                json.dump(
+                    data,
+                    file,
+                    indent=4,
+                )
+        except AttributeError:
+            return
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
+
+    def pd_load_all_button_on_click(self) -> None:
+        try:
+            with filedialog.askopenfile(
+                initialdir=os.path.join(os.getcwd(), "saves"),
+                filetypes=[("Json Documents", "*.json")],
+                defaultextension=".json",
+            ) as json_file:
+                data = json.load(json_file)
+        except:
+            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return
+        for i, row in enumerate(self.pd_rows):
+            if i < len(data):
+                row.selected = data[i]["servers"]
+                row.update_added_servers_label()
+                row.pd_min_gold_price_entry.delete(
+                    0, len(row.pd_min_gold_price_entry.get())
+                )
+                row.pd_final_gold_price_entry.delete(
+                    0, len(row.pd_final_gold_price_entry.get())
+                )
+                row.pd_min_gold_price_entry.insert(0, str(data[i]["min_gold_price"]))
+                values = data[i]["values"]
+                if values is not None:
+                    row.pd_final_gold_price_entry.insert(
+                        0, ",".join([str(val) for val in values])
+                    )
+            else:
+                row.clear()
 
     def pd_add_row_button_on_click(self) -> None:
         self.change_pd_row_count(1)
