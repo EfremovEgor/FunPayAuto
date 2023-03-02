@@ -293,7 +293,9 @@ class ChainServersRow:
         self.update_added_servers_label()
         self.csf_gold_amount_entry.delete(0, len(self.csf_gold_amount_entry.get()))
         self.csf_gold_price_entry.delete(0, len(self.csf_gold_price_entry.get()))
-        self.csf_gold_amount_entry.insert(0, str(data["amount"]))
+        self.csf_gold_amount_entry.insert(
+            0, str(data["amount"]) if data["amount"] is not None else ""
+        )
         self.csf_gold_price_entry.insert(0, str(data["price"]))
 
     def clear(self) -> None:

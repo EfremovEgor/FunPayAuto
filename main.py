@@ -432,7 +432,9 @@ class App(customtkinter.CTk):
                     0, len(row.csf_gold_amount_entry.get())
                 )
                 row.csf_gold_price_entry.delete(0, len(row.csf_gold_price_entry.get()))
-                row.csf_gold_amount_entry.insert(0, str(data[i]["amount"]))
+                row.csf_gold_amount_entry.insert(
+                    0, str(data[i]["amount"] if data[i]["amount"] is not None else "")
+                )
                 row.csf_gold_price_entry.insert(0, str(data[i]["price"]))
             else:
                 row.clear()
