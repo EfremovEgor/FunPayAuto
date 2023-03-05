@@ -475,7 +475,7 @@ class App(customtkinter.CTk):
         )
         self.pd_label.grid(row=0, column=1, sticky="ew")
         self.pd_rows: list[PreciseDampingRaw] = list()
-        self.csf_submit_all_button = customtkinter.CTkButton(
+        self.pd_submit_all_button = customtkinter.CTkButton(
             self.precise_damping_frame,
             corner_radius=0,
             height=20,
@@ -491,7 +491,7 @@ class App(customtkinter.CTk):
             image=self.submit_image,
             command=self.pd_submit_all_button_on_click,
         )
-        self.csf_submit_all_button.grid(
+        self.pd_submit_all_button.grid(
             row=self.pd_n_rows + 1, column=7, sticky="ew", padx=5, pady=(20)
         )
 
@@ -592,7 +592,6 @@ class App(customtkinter.CTk):
             os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
         )
 
-
     def pd_save_all_button_on_click(self) -> None:
         data = list()
         for row in self.pd_rows:
@@ -684,6 +683,15 @@ class App(customtkinter.CTk):
         )
         self.pd_remove_row_button.grid(
             row=self.pd_n_rows + 1, column=1, sticky="ew", padx=5
+        )
+        self.pd_submit_all_button.grid(
+            row=self.pd_n_rows + 1, column=7, sticky="ew", padx=5
+        )
+        self.pd_save_all_button.grid(
+            row=self.pd_n_rows + 1, column=8, sticky="ew", padx=5, pady=(20)
+        )
+        self.pd_load_all_button.grid(
+            row=self.pd_n_rows + 1, column=9, sticky="ew", padx=5, pady=(20)
         )
         with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
             config = json.load(f)
