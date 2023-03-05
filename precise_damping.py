@@ -463,7 +463,6 @@ class PreciseDampingRaw:
                     f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
                 ]
             )
-        print(pre_edit_prices_selected)
         message = "\n".join(
             f"{list(server.keys())[0]}({server['side']}) {price_calc.get_final_price(float(pre_price))} -> {price}"
             for server, price, pre_price in list(
@@ -569,6 +568,27 @@ class PreciseDampingRaw:
         self.pd_send_button.destroy()
         self.pd_submit_button.destroy()
         self.pd_load_button.destroy()
+
+    def represent(self) -> dict:
+        raw_data = self.prepare_data(silent=True)
+        if raw_data is None:
+            return None
+        data = dict()
+        for server in list(raw_data[1]):
+            data[
+                f"offers[{list(server.values())[0]}][{'1' if list(server.values())[1]=='Альянс' else '2'}][price]"
+            ] = ""
+        self.data = data
+        values = self.pd_final_gold_price_entry.get().strip().split(",")
+        if not values or values[0] == "":
+            showerror(title="Error", message="No values")
+            return None
+        if len(values) != len(list(self.data.keys())):
+            showerror(title="Error", message="Not enough params")
+            return None
+        for i, key in enumerate(list(self.data.keys())):
+            self.data[key] = str(price_calc.get_initial_price(float(values[i])))
+        return self.data
 
     def load_images(self) -> None:
         image_path = os.path.join(os.getcwd(), "icons")

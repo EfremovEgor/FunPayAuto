@@ -475,6 +475,25 @@ class App(customtkinter.CTk):
         )
         self.pd_label.grid(row=0, column=1, sticky="ew")
         self.pd_rows: list[PreciseDampingRaw] = list()
+        self.csf_submit_all_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Submit all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.submit_image,
+            command=self.pd_submit_all_button_on_click,
+        )
+        self.csf_submit_all_button.grid(
+            row=self.pd_n_rows + 1, column=7, sticky="ew", padx=5, pady=(20)
+        )
 
         for row in range(self.pd_n_rows):
             self.pd_rows.append(
@@ -560,6 +579,19 @@ class App(customtkinter.CTk):
         self.pd_save_all_button.grid(
             row=self.pd_n_rows + 1, column=8, sticky="ew", padx=5, pady=(20)
         )
+
+    def pd_submit_all_button_on_click(self) -> None:
+        payload = dict()
+        for row in self.pd_rows:
+            data = row.represent()
+            if data is not None:
+                payload.update(data)
+        payload = requests_worker.form_payload(payload)
+        requests_worker.send_request(payload)
+        playsound.playsound(
+            os.path.join(os.getcwd(), "sounds", "notification_sound.mp3"), False
+        )
+
 
     def pd_save_all_button_on_click(self) -> None:
         data = list()
