@@ -13,6 +13,21 @@ import playsound
 
 
 class ChainServersRow:
+    def combobox_on_text_enter(self, *args, **kwargs):
+        if (
+            self.csf_add_servers_combobox.get() is None
+            or not self.csf_add_servers_combobox.get()
+        ):
+            self.csf_add_servers_combobox.configure(values=self.servers_labels)
+            return
+        self.csf_add_servers_combobox.configure(
+            values=[
+                value
+                for value in self.servers_labels
+                if self.csf_add_servers_combobox.get().lower() in value.lower()
+            ]
+        )
+
     def __init__(
         self,
         chain_servers_frame: customtkinter.CTkFrame,
@@ -46,19 +61,18 @@ class ChainServersRow:
             row=self.row, column=0, sticky="ew", ipadx=10, ipady=5
         )
 
-        servers = [list(val.keys())[0] for val in self.servers]
-
+        self.servers_labels = [list(val.keys())[0] for val in self.servers]
         self.csf_add_servers_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
             corner_radius=0,
             height=28,
             font=customtkinter.CTkFont(size=15),
             text_color=("gray10", "gray90"),
-            state="readonly",
-            values=servers,
+            values=self.servers_labels,
             border_width=1,
         )
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
+        self.csf_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
 
         self.csf_choose_side_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
@@ -216,7 +230,7 @@ class ChainServersRow:
                 self.selected.append(server)
         self.update_added_servers_label()
 
-    def prepare_data(self, silent=False) -> list:
+    def prepare_data(self, silent: bool = False) -> list:
         if self.csf_gold_amount_entry.get():
             try:
                 self.gold_amount = int(self.csf_gold_amount_entry.get())
@@ -314,18 +328,18 @@ class ChainServersRow:
         self.csf_add_servers_label.grid(
             row=self.row, column=0, sticky="ew", ipadx=10, ipady=5
         )
-        servers = [list(val.keys())[0] for val in self.servers]
+        self.servers_labels = [list(val.keys())[0] for val in self.servers]
         self.csf_add_servers_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
             corner_radius=0,
             height=28,
             font=customtkinter.CTkFont(size=15),
             text_color=("gray10", "gray90"),
-            state="readonly",
-            values=servers,
+            values=self.servers_labels,
             border_width=1,
         )
-        self.csf_add_servers_combobox.set(servers[0])
+        self.csf_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
+        self.csf_add_servers_combobox.set(self.servers_labels[0])
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
         self.csf_choose_side_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,

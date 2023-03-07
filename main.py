@@ -15,6 +15,7 @@ from precise_damping import PreciseDampingRaw
 from customtkinter import filedialog
 import requests_worker
 import playsound
+from validate_password import access_granted
 
 DIRECTORIES = ["data", "downloads", "logs", "saves"]
 customtkinter.set_appearance_mode("System")
@@ -92,6 +93,9 @@ class App(customtkinter.CTk):
         )
         self.plus_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "plus.png"))
+        )
+        self.send_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "pd_send.png"))
         )
 
     def prepare_navigation_frame(self) -> None:
@@ -475,23 +479,23 @@ class App(customtkinter.CTk):
         )
         self.pd_label.grid(row=0, column=1, sticky="ew")
         self.pd_rows: list[PreciseDampingRaw] = list()
-        self.pd_submit_all_button = customtkinter.CTkButton(
+        self.pd_send_all_button = customtkinter.CTkButton(
             self.precise_damping_frame,
             corner_radius=0,
             height=20,
             width=30,
             font=customtkinter.CTkFont(size=15),
-            text="Submit all",
+            text="Send all",
             fg_color="transparent",
             border_width=1,
             border_color=("gray70", "gray30"),
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             anchor="w",
-            image=self.submit_image,
-            command=self.pd_submit_all_button_on_click,
+            image=self.send_image,
+            command=self.pd_send_all_button_on_click,
         )
-        self.pd_submit_all_button.grid(
+        self.pd_send_all_button.grid(
             row=self.pd_n_rows + 1, column=7, sticky="ew", padx=5, pady=(20)
         )
 
@@ -579,8 +583,38 @@ class App(customtkinter.CTk):
         self.pd_save_all_button.grid(
             row=self.pd_n_rows + 1, column=8, sticky="ew", padx=5, pady=(20)
         )
+        self.pd_submit_all_button = customtkinter.CTkButton(
+            self.precise_damping_frame,
+            corner_radius=0,
+            height=20,
+            width=30,
+            font=customtkinter.CTkFont(size=15),
+            text="Submit all",
+            fg_color="transparent",
+            border_width=1,
+            border_color=("gray70", "gray30"),
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.submit_image,
+            command=self.pd_submit_all_button_on_click,
+        )
+        self.pd_submit_all_button.grid(
+            row=self.pd_n_rows + 1, column=5, sticky="ew", padx=5, pady=(20)
+        )
 
     def pd_submit_all_button_on_click(self) -> None:
+        message = ""
+        for row in self.pd_rows:
+            resp = row.submit_button_on_click(silent=True)
+            if resp is not None:
+                message += "\n" + resp
+        if not message:
+            showinfo(title="Info", message="Nothing changed")
+            return
+        showinfo(title="Info", message=message)
+
+    def pd_send_all_button_on_click(self) -> None:
         payload = dict()
         for row in self.pd_rows:
             data = row.represent()
@@ -684,7 +718,7 @@ class App(customtkinter.CTk):
         self.pd_remove_row_button.grid(
             row=self.pd_n_rows + 1, column=1, sticky="ew", padx=5
         )
-        self.pd_submit_all_button.grid(
+        self.pd_send_all_button.grid(
             row=self.pd_n_rows + 1, column=7, sticky="ew", padx=5
         )
         self.pd_save_all_button.grid(
@@ -692,6 +726,9 @@ class App(customtkinter.CTk):
         )
         self.pd_load_all_button.grid(
             row=self.pd_n_rows + 1, column=9, sticky="ew", padx=5, pady=(20)
+        )
+        self.pd_submit_all_button.grid(
+            row=self.pd_n_rows + 1, column=5, sticky="ew", padx=5, pady=(20)
         )
         with open(os.path.join(os.getcwd(), "config.json"), "r") as f:
             config = json.load(f)
@@ -789,10 +826,12 @@ class App(customtkinter.CTk):
             row.csf_add_servers_combobox.configure(values=servers)
             row.csf_add_servers_combobox.set(servers[0] if servers else "None")
             row.servers = self.servers
+            row.servers_labels = [list(val.keys())[0] for val in self.servers]
         for row in self.pd_rows:
             row.pd_add_servers_combobox.configure(values=servers)
             row.pd_add_servers_combobox.set(servers[0] if servers else "None")
             row.servers = self.servers
+            row.servers_labels = [list(val.keys())[0] for val in self.servers]
 
     def save_servers(self) -> None:
         dp.essentials_check(lambda x: x)
@@ -872,14 +911,28 @@ def download_essentials() -> None:
     data_path = os.path.join(os.getcwd(), "data")
     request_template_path = os.path.join(data_path, "request_template.json")
     aliases_template_path = os.path.join(data_path, "aliases.json")
+
     if not os.path.exists(request_template_path):
-        response = requests.get("https://pastebin.com/raw/UmY7QdS1")
+        response = requests.get("https://pastebin.com/raw/jsK01M4J")
         with open(request_template_path, "wb") as f:
             f.write(response.content)
     if not os.path.exists(aliases_template_path):
-        response = requests.get("https://pastebin.com/raw/SmiWDj42")
+        response = requests.get("https://pastebin.com/raw/aUbcmPVM")
         with open(aliases_template_path, "wb") as f:
             f.write(response.content)
+
+
+def validate_login():
+    pwd_file_path = os.path.join(os.getcwd(), "password.txt")
+    if not os.path.exists(pwd_file_path):
+        with open(pwd_file_path, "w"):
+            return
+    if not access_granted():
+        showerror(
+            title="Error",
+            message=f"Wrong password, change passsword file at {pwd_file_path}",
+        )
+        exit()
 
 
 def remove_empty_logs() -> None:
@@ -895,6 +948,7 @@ if __name__ == "__main__":
     create_directories()
     download_essentials()
     remove_empty_logs()
+    validate_login()
     logging.basicConfig(
         filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
         filemode="w",

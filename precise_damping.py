@@ -14,6 +14,21 @@ from customtkinter import filedialog
 
 
 class PreciseDampingRaw:
+    def combobox_on_text_enter(self, *args, **kwargs):
+        if (
+            self.pd_add_servers_combobox.get() is None
+            or not self.pd_add_servers_combobox.get()
+        ):
+            self.pd_add_servers_combobox.configure(values=self.servers_labels)
+            return
+        self.pd_add_servers_combobox.configure(
+            values=[
+                value
+                for value in self.servers_labels
+                if self.pd_add_servers_combobox.get().lower() in value.lower()
+            ]
+        )
+
     def __init__(
         self,
         precise_damping_frame: customtkinter.CTkFrame,
@@ -46,20 +61,19 @@ class PreciseDampingRaw:
         )
         self.pd_add_servers_label.grid(row=self.row, column=0, sticky="ew", ipadx=10)
 
-        servers = [list(val.keys())[0] for val in self.servers]
-
+        self.servers_labels = [list(val.keys())[0] for val in self.servers]
         self.pd_add_servers_combobox = customtkinter.CTkComboBox(
             self.precise_damping_frame,
             corner_radius=0,
             height=28,
             font=customtkinter.CTkFont(size=15),
             text_color=("gray10", "gray90"),
-            state="readonly",
-            values=servers,
+            values=self.servers_labels,
             border_width=1,
         )
-        self.pd_add_servers_combobox.grid(row=self.row, column=1, sticky="ew", pady=5)
+        self.pd_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
 
+        self.pd_add_servers_combobox.grid(row=self.row, column=1, sticky="ew", pady=5)
         self.pd_choose_side_combobox = customtkinter.CTkComboBox(
             self.precise_damping_frame,
             corner_radius=0,
@@ -213,20 +227,20 @@ class PreciseDampingRaw:
         )
         self.pd_add_servers_label.grid(row=self.row, column=0, sticky="ew", ipadx=10)
 
-        servers = [list(val.keys())[0] for val in self.servers]
-
+        self.servers_labels = [list(val.keys())[0] for val in self.servers]
         self.pd_add_servers_combobox = customtkinter.CTkComboBox(
             self.precise_damping_frame,
             corner_radius=0,
             height=28,
             font=customtkinter.CTkFont(size=15),
             text_color=("gray10", "gray90"),
-            state="readonly",
-            values=servers,
+            values=self.servers_labels,
             border_width=1,
         )
+        self.pd_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
+
         self.pd_add_servers_combobox.grid(row=self.row, column=1, sticky="ew", pady=5)
-        self.pd_add_servers_combobox.set(servers[0])
+        self.pd_add_servers_combobox.set(self.servers_labels[0])
 
         self.pd_choose_side_combobox = customtkinter.CTkComboBox(
             self.precise_damping_frame,
@@ -388,6 +402,8 @@ class PreciseDampingRaw:
 
     def add_button_on_click(self) -> None:
         added_server = self.pd_add_servers_combobox.get().strip()
+        if added_server not in self.servers_labels:
+            return
         servers = copy.deepcopy(self.servers)
         for server in servers:
             if server.get(added_server, None) is not None:
@@ -402,7 +418,7 @@ class PreciseDampingRaw:
                 self.selected.append(server)
         self.update_added_servers_label()
 
-    def prepare_data(self, silent=False) -> list:
+    def prepare_data(self, silent: bool = False) -> list:
         try:
             if self.pd_min_gold_price_entry.get():
                 self.min_gold_price = float(self.pd_min_gold_price_entry.get())
@@ -418,21 +434,23 @@ class PreciseDampingRaw:
             return None
         return [self.min_gold_price, self.selected]
 
-    def submit_button_on_click(self) -> None:
+    def submit_button_on_click(self, silent: bool = False) -> None | str:
         try:
             min_price = float(self.pd_min_gold_price_entry.get())
         except ValueError as ex:
-            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
-            showerror(title="Error", message="Wrong gold price")
-            return
-        raw_data = self.prepare_data()
+            if not silent:
+                logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+                showerror(title="Error", message="Wrong gold price")
+            return None
+        raw_data = self.prepare_data(silent=silent)
         if raw_data is None:
-            return
+            return None
         try:
             prices = data_parser.get_prices()
         except:
-            logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
-            return
+            if not silent:
+                logging.exception(time.strftime("[%Y-%m-%d %H:%M:%S]"))
+            return None
         data = dict()
         for server in list(raw_data[1]):
             keys = list(server.keys())
@@ -473,6 +491,8 @@ class PreciseDampingRaw:
                 )
             )
         )
+        if silent:
+            return message
         showinfo(title="Info", message=message)
 
     def send_button_on_click(self) -> None:
@@ -569,7 +589,7 @@ class PreciseDampingRaw:
         self.pd_submit_button.destroy()
         self.pd_load_button.destroy()
 
-    def represent(self) -> dict:
+    def represent(self) -> dict | None:
         raw_data = self.prepare_data(silent=True)
         if raw_data is None:
             return None

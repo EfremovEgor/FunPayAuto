@@ -102,7 +102,7 @@ def get_servers() -> list[dict]:
         ).find_all("option")
         if server.text.strip().lower() != "сервер"
     ]
-    return servers[:20]
+    return servers
 
 
 @essentials_check
@@ -115,6 +115,9 @@ def get_prices() -> dict:
     html_objects = BeautifulSoup(html, "lxml", parse_only=only_online)
     items = html_objects.find_all("a")
     data = dict()
+    for server in get_servers():
+        data[list(server.keys())[0], "Альянс"] = list()
+        data[list(server.keys())[0], "Орда"] = list()
     with open(os.path.join(os.getcwd(), "config.json")) as f:
         username = json.load(f).get("username")
     for item in items:
@@ -138,6 +141,13 @@ def get_prices() -> dict:
     return data
 
 
+# print(get_prices()["Aggramar", "Альянс"])
+# print(get_servers())
+# data = list(get_prices().keys())
+# data.sort(key=lambda x: x[0])
+# print(data)
+
+
 @essentials_check
 def get_gold_amount() -> dict:
     session = requests.Session()
@@ -152,9 +162,7 @@ def get_gold_amount() -> dict:
     html_objects = BeautifulSoup(html, "lxml")
     gold_amounts = dict()
     n_servers = 43
-    entries = html_objects.find_all("input", attrs={"class": "form-control amount"})[
-        :n_servers
-    ]
+    entries = html_objects.find_all("input", attrs={"class": "form-control amount"})
     for entry in entries:
         gold_amounts[entry["name"].strip()] = entry["value"].strip()
     return gold_amounts
