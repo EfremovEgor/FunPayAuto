@@ -73,7 +73,9 @@ class ChainServersRow:
         )
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
         self.csf_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
-
+        self.csf_add_servers_combobox.set(
+            self.servers_labels[0] if self.servers_labels else "None"
+        )
         self.csf_choose_side_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,
             corner_radius=0,
@@ -339,7 +341,9 @@ class ChainServersRow:
             border_width=1,
         )
         self.csf_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
-        self.csf_add_servers_combobox.set(self.servers_labels[0])
+        self.csf_add_servers_combobox.set(
+            self.servers_labels[0] if self.servers_labels else "None"
+        )
         self.csf_add_servers_combobox.grid(row=self.row, column=1, sticky="ew")
         self.csf_choose_side_combobox = customtkinter.CTkComboBox(
             self.chain_servers_frame,

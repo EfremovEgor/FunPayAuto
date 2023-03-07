@@ -74,6 +74,9 @@ class PreciseDampingRaw:
         self.pd_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
 
         self.pd_add_servers_combobox.grid(row=self.row, column=1, sticky="ew", pady=5)
+        self.pd_add_servers_combobox.set(
+            self.servers_labels[0] if self.servers_labels else "None"
+        )
         self.pd_choose_side_combobox = customtkinter.CTkComboBox(
             self.precise_damping_frame,
             corner_radius=0,
@@ -240,7 +243,9 @@ class PreciseDampingRaw:
         self.pd_add_servers_combobox.bind("<KeyRelease>", self.combobox_on_text_enter)
 
         self.pd_add_servers_combobox.grid(row=self.row, column=1, sticky="ew", pady=5)
-        self.pd_add_servers_combobox.set(self.servers_labels[0])
+        self.pd_add_servers_combobox.set(
+            self.servers_labels[0] if self.servers_labels else "None"
+        )
 
         self.pd_choose_side_combobox = customtkinter.CTkComboBox(
             self.precise_damping_frame,

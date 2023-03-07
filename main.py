@@ -16,6 +16,7 @@ from customtkinter import filedialog
 import requests_worker
 import playsound
 from validate_password import access_granted
+import sys
 
 DIRECTORIES = ["data", "downloads", "logs", "saves"]
 customtkinter.set_appearance_mode("System")
@@ -926,13 +927,15 @@ def validate_login():
     pwd_file_path = os.path.join(os.getcwd(), "password.txt")
     if not os.path.exists(pwd_file_path):
         with open(pwd_file_path, "w"):
-            return
+            showinfo(title="Info", message=f"Change passsword file at {pwd_file_path}")
+            return False
     if not access_granted():
         showerror(
             title="Error",
             message=f"Wrong password, change passsword file at {pwd_file_path}",
         )
-        exit()
+        return False
+    return True
 
 
 def remove_empty_logs() -> None:
@@ -948,7 +951,8 @@ if __name__ == "__main__":
     create_directories()
     download_essentials()
     remove_empty_logs()
-    validate_login()
+    if not validate_login():
+        sys.exit()
     logging.basicConfig(
         filename=os.path.join("logs", f'{time.strftime("%Y_%m_%d-%H_%M_%S")}.log'),
         filemode="w",

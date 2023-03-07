@@ -7,4 +7,9 @@ def get_final_price(initial_price: float):
 
 
 def get_initial_price(final_price: float):
-    return round(final_price / (price_out / price_in), 2)
+    if get_final_price(round(final_price / (price_out / price_in), 2)) == final_price:
+        return round(final_price / (price_out / price_in), 2)
+    elif get_final_price(round(final_price / (price_out / price_in), 3)) == final_price:
+        return round(final_price / (price_out / price_in), 3)
+    else:
+        return round(final_price / (price_out / price_in), 4)
