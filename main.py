@@ -167,21 +167,21 @@ class App(customtkinter.CTk):
             command=self.csf_select_button_on_click,
         )
         self.csf_select_button.grid(row=4, column=0, sticky="ew", pady=(20, 0))
-        self.md_select_button = customtkinter.CTkButton(
+        self.extra_section_select_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
             height=40,
             font=customtkinter.CTkFont(size=15),
             border_spacing=10,
-            text="Mass Damping",
+            text="Extra",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
             hover_color=("gray70", "gray30"),
             anchor="w",
             image=self.mass_damping_image,
-            command=self.md_select_button_on_click,
+            command=self.extra_section_select_button_on_click,
         )
-        self.md_select_button.grid(row=5, column=0, sticky="ew")
+        self.extra_section_select_button.grid(row=6, column=0, sticky="ew")
         self.pd_select_button = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -196,7 +196,7 @@ class App(customtkinter.CTk):
             image=self.precise_damping_image,
             command=self.pd_select_button_on_click,
         )
-        self.pd_select_button.grid(row=6, column=0, sticky="ew")
+        self.pd_select_button.grid(row=5, column=0, sticky="ew")
         self.reupload_servers = customtkinter.CTkButton(
             self.navigation_frame,
             corner_radius=0,
@@ -747,7 +747,7 @@ class App(customtkinter.CTk):
             corner_radius=0,
             height=40,
             font=customtkinter.CTkFont(size=30),
-            text=f"Mass damping",
+            text=f"Extra",
             fg_color="transparent",
             text_color=("gray10", "gray90"),
         )
@@ -760,7 +760,7 @@ class App(customtkinter.CTk):
     def csf_select_button_on_click(self) -> None:
         self.select_frame_by_name("chain_servers")
 
-    def md_select_button_on_click(self) -> None:
+    def extra_section_select_button_on_click(self) -> None:
         self.select_frame_by_name("mass_damping")
 
     def pd_select_button_on_click(self) -> None:
