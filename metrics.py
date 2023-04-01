@@ -129,7 +129,7 @@ class App(customtkinter.CTk):
                     {list(server.keys())[0]: list(server.values())[0]}
                 )
 
-    def update_gold_amounts(self) -> None:
+    def update_gold_amounts(self, silent=True) -> None:
         self.gold_amounts = get_gold_amount()
         threshold_passed = False
         for row in self.rows:
@@ -159,7 +159,7 @@ class App(customtkinter.CTk):
             )
             if int(amounts[0]) < 1_000_000:
                 row.minimal_gold_amount.configure(text_color="red")
-                if not threshold_passed:
+                if (not threshold_passed) and (not silent):
                     playsound.playsound(
                         os.path.join(
                             os.getcwd(),
