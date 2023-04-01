@@ -107,6 +107,11 @@ def get_servers() -> list[dict]:
 
 @essentials_check
 def get_prices() -> dict:
+    cwd = os.getcwd()
+
+    with open(os.path.join(cwd, "config.json"), "r") as json_file:
+        config = json.load(json_file)
+    minimal_amount = config.get("gold_damp_threshold")
     session = requests.Session()
     session.headers = {"User-Agent": UserAgent().random}
     session.cookies.update(cookies_worker.read_cookies())
@@ -126,6 +131,12 @@ def get_prices() -> dict:
         server = item.find("div", {"class": "tc-server hidden-xxs"}).text.strip()
         side = item.find("div", {"class": "tc-side hidden-xxs"}).text.strip()
         price = item.find("div", {"class": "tc-price"}).text.strip()
+        if (
+            int(item.find("div", {"class": "tc-amount"}).text.strip().replace(" ", ""))
+            < minimal_amount
+            and minimal_amount is not None
+        ):
+            continue
         if (server, side) not in list(data.keys()):
             data[(server, side)] = list()
         data[(server, side)].append(float(price.split()[0].strip()))
@@ -152,7 +163,13 @@ def get_prices() -> dict:
 def get_gold_amount() -> dict:
     session = requests.Session()
     session.headers = {"User-Agent": UserAgent().random}
-    session.cookies.update(cookies_worker.read_cookies())
+    cookies = cookies_worker.read_cookies()
+    session.cookies.update(cookies)
+    phpsessid = session.get("https://funpay.com/chips/saveOffers").cookies.get(
+        "PHPSESSID"
+    )
+    cookies.update({"PHPSESSID": phpsessid})
+    session.cookies.update(cookies)
     cwd = os.getcwd()
     with open(os.path.join(cwd, "config.json"), "r") as json_file:
         config = json.load(json_file)

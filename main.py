@@ -17,6 +17,7 @@ import requests_worker
 import playsound
 from validate_password import access_granted
 import sys
+from settings_frame import SettingsObj
 
 DIRECTORIES = ["data", "downloads", "logs", "saves"]
 customtkinter.set_appearance_mode("System")
@@ -30,8 +31,8 @@ class App(customtkinter.CTk):
         if os.path.exists(path):
             with open(path, "r") as f:
                 self.username = json.load(f).get("username", None)
-
-        print(self.username)
+        else:
+            self.config_button_on_click()
         super().__init__()
         self.minimal_gold = 5.0
         self.title("FunPay")
@@ -41,6 +42,7 @@ class App(customtkinter.CTk):
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=1)
         self.load_images()
+        self.prepare_settings_frame()
         self.prepare_navigation_frame()
         self.prepare_chain_servers_frame()
         self.prepare_mass_damping()
@@ -97,6 +99,9 @@ class App(customtkinter.CTk):
         )
         self.send_image = customtkinter.CTkImage(
             light_image=Image.open(os.path.join(image_path, "pd_send.png"))
+        )
+        self.gear_image = customtkinter.CTkImage(
+            light_image=Image.open(os.path.join(image_path, "gear.png"))
         )
 
     def prepare_navigation_frame(self) -> None:
@@ -213,6 +218,42 @@ class App(customtkinter.CTk):
             command=self.reupload_servers,
         )
         self.reupload_servers.grid(row=7, column=0, sticky="ew")
+        self.settings_button = customtkinter.CTkButton(
+            self.navigation_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=15),
+            border_spacing=10,
+            text="Settings",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+            hover_color=("gray70", "gray30"),
+            anchor="w",
+            image=self.gear_image,
+            command=self.settings_button_on_click,
+        )
+        self.settings_button.grid(row=8, column=0, sticky="ew")
+
+    def prepare_settings_frame(self) -> None:
+        self.settings_frame = customtkinter.CTkFrame(
+            self, corner_radius=0, fg_color="transparent"
+        )
+        self.settings_frame.grid_columnconfigure(4, weight=1)
+        self.settings_frame.rowconfigure(20, weight=1)
+        self.settings_label = customtkinter.CTkLabel(
+            self.settings_frame,
+            corner_radius=0,
+            height=40,
+            font=customtkinter.CTkFont(size=30),
+            text=f"Settings",
+            fg_color="transparent",
+            text_color=("gray10", "gray90"),
+        )
+        self.settings_label.grid(row=0, column=1, sticky="ew")
+        self.settings_objects = SettingsObj(self.settings_frame)
+
+    def settings_button_on_click(self) -> None:
+        self.select_frame_by_name("settings")
 
     def prepare_chain_servers_frame(self) -> None:
         path = os.path.join(os.getcwd(), "config.json")
@@ -780,6 +821,10 @@ class App(customtkinter.CTk):
             self.precise_damping_frame.grid(row=0, column=1, sticky="nsew")
         else:
             self.precise_damping_frame.grid_forget()
+        if name == "settings":
+            self.settings_frame.grid(row=0, column=1, sticky="nsew")
+        else:
+            self.settings_frame.grid_forget()
 
     def reupload_servers(self) -> None:
         try:
@@ -854,6 +899,7 @@ class App(customtkinter.CTk):
             "csf_row_count": 12,
             "pd_row_count": 6,
             "username": self.username,
+            "gold_damp_threshold": 100000,
         }
         with open(os.path.join(os.getcwd(), "config.json"), "w") as file:
             json.dump(config_dict, file, indent=4)
