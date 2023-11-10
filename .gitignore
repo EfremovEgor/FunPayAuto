@@ -30,3 +30,4 @@ logs/
 saves/
 *.spec
 password.txt
+.venv.rar

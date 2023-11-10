@@ -29,7 +29,7 @@ class App(customtkinter.CTk):
         self.username = None
         path = os.path.join(os.getcwd(), "config.json")
         if os.path.exists(path):
-            with open(path, "r") as f:
+            with open(path, "r") as f:  
                 self.username = json.load(f).get("username", None)
         else:
             self.config_button_on_click()
