@@ -3,6 +3,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
+from webdriver_manager.chrome import ChromeDriverManager
 import selenium
 import json
 from tkinter.messagebox import showerror, showwarning, showinfo
@@ -14,7 +15,9 @@ def get_cookies(url: str = URL, load_from_cfg: bool = False) -> dict:
     chrome_options = Options()
     chrome_options.add_experimental_option("excludeSwitches", ["enable-logging"])
     chrome_options.add_experimental_option("detach", False)
-    driver = webdriver.Chrome(chrome_options=chrome_options)
+    driver = webdriver.Chrome(
+        executable_path=ChromeDriverManager().install(), chrome_options=chrome_options
+    )
     driver.get(URL)
     try:
         WebDriverWait(driver, 300).until(
